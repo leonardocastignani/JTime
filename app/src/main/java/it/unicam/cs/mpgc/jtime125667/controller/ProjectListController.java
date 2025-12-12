@@ -6,7 +6,9 @@ import javafx.collections.*;
 import javafx.fxml.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.stage.Stage;
+import javafx.scene.layout.*;
+import javafx.stage.*;
+import javafx.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -40,17 +42,6 @@ public class ProjectListController {
 
         this.loadData();
         this.projectListView.setItems(this.projects);
-
-        if (this.projects.isEmpty()) {
-            this.createSampleData();
-        }
-    }
-
-    private void createSampleData() {
-        System.out.println("Database vuoto. Creo dati di esempio...");
-        ConcreteProject sample = new ConcreteProject("Progetto Demo", "Creato automaticamente all'avvio");
-        this.repository.save(sample);
-        this.loadData();
     }
 
     private void loadData() {
@@ -72,19 +63,56 @@ public class ProjectListController {
 
     @FXML
     private void handleNewProject() {
-        TextInputDialog dialog = new TextInputDialog("Nuovo Progetto");
-        dialog.setTitle("Crea Progetto");
+        Dialog<Pair<String, String>> dialog = new Dialog<Pair<String, String>>();
+        dialog.setTitle("Nuovo Progetto");
         dialog.setHeaderText("Inserisci i dettagli del nuovo progetto");
-        dialog.setContentText("Nome del progetto:");
 
-        Optional<String> result = dialog.showAndWait();
+        ButtonType createButtonType = new ButtonType("Crea", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
 
-        result.ifPresent(name -> {
-            if (!name.trim().isEmpty()) {
-                ConcreteProject newProject = new ConcreteProject(name, "Descrizione da modificare...");
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Nome del progetto");
+        
+        TextArea descriptionField = new TextArea();
+        descriptionField.setPromptText("Descrizione del progetto");
+        descriptionField.setPrefRowCount(3);
+        descriptionField.setWrapText(true);
+
+        grid.add(new Label("Nome:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Descrizione:"), 0, 1);
+        grid.add(descriptionField, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == createButtonType) {
+                return new Pair<String, String>(nameField.getText(), descriptionField.getText());
+            }
+            return null;
+        });
+
+        Optional<Pair<String, String>> result = dialog.showAndWait();
+
+        result.ifPresent(pair -> {
+            String name = pair.getKey();
+            String description = pair.getValue();
+            
+            if (name != null && !name.trim().isEmpty()) {
+                if (description == null) description = "";
+                
+                ConcreteProject newProject = new ConcreteProject(name, description);
                 this.repository.save(newProject);
                 this.loadData();
                 System.out.println("Progetto salvato: " + name);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Il nome del progetto è obbligatorio.");
+                alert.show();
             }
         });
     }
@@ -114,9 +142,8 @@ public class ProjectListController {
 
     @FXML
     private void handleDeleteProject() {
-        ConcreteProject selected = projectListView.getSelectionModel().getSelectedItem();
+        ConcreteProject selected = this.projectListView.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            // Chiedi conferma
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Elimina Progetto");
             alert.setHeaderText("Sei sicuro di voler eliminare: " + selected.getName() + "?");
@@ -124,10 +151,8 @@ public class ProjectListController {
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                // Elimina dal DB
-                repository.delete(selected);
-                // Rimuovi dalla lista visualizzata
-                projects.remove(selected);
+                this.repository.delete(selected);
+                this.projects.remove(selected);
             }
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Seleziona un progetto da eliminare.");
