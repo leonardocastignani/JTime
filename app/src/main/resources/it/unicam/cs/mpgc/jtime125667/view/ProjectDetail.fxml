@@ -11,7 +11,10 @@
         <VBox spacing="5">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
             <Button text="&lt; Torna ai Progetti" onAction="#handleBack"/>
-            <Label fx:id="projectNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+            <HBox spacing="20" alignment="CENTER_LEFT">
+                <Label fx:id="projectNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <CheckBox fx:id="completedCheckBox" text="Progetto Completato" onAction="#handleToggleComplete" style="-fx-font-size: 14px;"/>
+            </HBox>
             <Label fx:id="projectDescriptionLabel" style="-fx-font-style: italic;"/>
         </VBox>
     </top>

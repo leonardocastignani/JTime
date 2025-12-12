@@ -22,6 +22,7 @@ public class ProjectDetailController {
 
     @FXML private Label projectNameLabel;
     @FXML private Label projectDescriptionLabel;
+    @FXML private CheckBox completedCheckBox; // Riferimento alla CheckBox
     @FXML private TableView<Task> taskTable;
     @FXML private TableColumn<Task, String> titleColumn;
     @FXML private TableColumn<Task, String> estimatedTimeColumn;
@@ -32,7 +33,7 @@ public class ProjectDetailController {
 
     public void setProject(ConcreteProject project) {
         this.currentProject = project;
-        this.projectRepository = new HibernateRepository<ConcreteProject>(ConcreteProject.class);
+        this.projectRepository = new HibernateRepository<>(ConcreteProject.class);
         this.updateView();
     }
 
@@ -54,7 +55,44 @@ public class ProjectDetailController {
             this.projectNameLabel.setText(this.currentProject.getName());
             this.projectDescriptionLabel.setText(this.currentProject.getDescription());
             this.taskTable.setItems(FXCollections.observableArrayList(this.currentProject.getTasks()));
+            
+            // Aggiorna lo stato della CheckBox
+            this.completedCheckBox.setSelected(this.currentProject.isCompleted());
+            
+            // Disabilita la tabella se il progetto è completato (opzionale, ma buona UX)
+            this.taskTable.setDisable(this.currentProject.isCompleted());
         }
+    }
+
+    @FXML
+    private void handleToggleComplete() {
+        if (this.currentProject == null) return;
+
+        if (this.currentProject.isCompleted()) {
+            // Se il progetto era completato e l'utente toglie la spunta -> Riapri
+            this.currentProject.setCompleted(false);
+        } else {
+            // Se l'utente prova a completare il progetto -> Verifica vincoli
+            boolean allTasksDone = this.currentProject.getTasks().stream().allMatch(Task::isCompleted);
+            
+            if (!allTasksDone) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Impossibile chiudere");
+                alert.setHeaderText("Attività pendenti");
+                alert.setContentText("Non puoi chiudere il progetto finché tutte le attività non sono completate.");
+                alert.showAndWait();
+                
+                // Ripristina la checkbox allo stato non selezionato
+                this.completedCheckBox.setSelected(false);
+                return;
+            }
+            // Se tutti i task sono completati -> Chiudi
+            this.currentProject.setCompleted(true);
+        }
+        
+        // Salva e aggiorna la vista
+        this.projectRepository.save(this.currentProject);
+        this.updateView();
     }
 
     @FXML
@@ -123,7 +161,14 @@ public class ProjectDetailController {
 
     @FXML
     private void handleAddTask() {
-        Dialog<Pair<String, LocalDate>> dialog = new Dialog<Pair<String, LocalDate>>();
+        // Se il progetto è completato, impedisci l'aggiunta di task
+        if (this.currentProject.isCompleted()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Riapri il progetto per aggiungere nuovi task.");
+            alert.show();
+            return;
+        }
+
+        Dialog<Pair<String, LocalDate>> dialog = new Dialog<>();
         dialog.setTitle("Nuovo Task");
         dialog.setHeaderText("Inserisci i dettagli del task");
 
@@ -149,7 +194,7 @@ public class ProjectDetailController {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                return new Pair<String, LocalDate>(titleField.getText(), datePicker.getValue());
+                return new Pair<>(titleField.getText(), datePicker.getValue());
             }
             return null;
         });
@@ -171,16 +216,35 @@ public class ProjectDetailController {
     
     @FXML
     private void handleCompleteTask() {
-        Task selected = this.taskTable.getSelectionModel().getSelectedItem();
+        Task selected = taskTable.getSelectionModel().getSelectedItem();
         if (selected != null && !selected.isCompleted()) {
-            selected.complete(selected.getEstimatedDuration());
-            this.projectRepository.save(this.currentProject);
-            this.taskTable.refresh();
+            TextInputDialog dialog = new TextInputDialog(String.valueOf(selected.getEstimatedDuration().toMinutes()));
+            dialog.setTitle("Completa Task");
+            dialog.setHeaderText("Conferma completamento: " + selected.getTitle());
+            dialog.setContentText("Durata effettiva (minuti):");
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(minutesStr -> {
+                try {
+                    long minutes = Long.parseLong(minutesStr);
+                    selected.complete(Duration.ofMinutes(minutes));
+                    this.projectRepository.save(this.currentProject);
+                    taskTable.refresh();
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Inserisci un numero valido per i minuti.");
+                    alert.show();
+                }
+            });
         }
     }
 
     @FXML
     private void handleDeleteTask() {
+        // Se il progetto è completato, impedisci l'eliminazione
+        if (this.currentProject.isCompleted()) {
+            return; 
+        }
+        
         Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             this.currentProject.removeTask(selected);
