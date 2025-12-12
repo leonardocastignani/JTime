@@ -5,6 +5,7 @@ import it.unicam.cs.mpgc.jtime125667.persistence.*;
 import it.unicam.cs.mpgc.jtime125667.report.*;
 import javafx.beans.property.*;
 import javafx.collections.*;
+import javafx.event.ActionEvent;
 import javafx.fxml.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -62,16 +63,12 @@ public class ProjectDetailController {
     private void handleReport() {
         if (currentProject == null) return;
 
-        // 1. Crea il Visitor
+        // 1. Genera il report
         TextReportVisitor visitor = new TextReportVisitor();
-        
-        // 2. Lancia la visita (il pattern fa tutto il lavoro di attraversamento)
         currentProject.accept(visitor);
-        
-        // 3. Ottieni il risultato
         String reportText = visitor.getReport();
 
-        // 4. Mostra il risultato in una finestra
+        // 2. Mostra la finestra con il pulsante di salvataggio integrato
         showReportDialog(reportText);
     }
 
@@ -80,22 +77,62 @@ public class ProjectDetailController {
         alert.setTitle("Report Progetto");
         alert.setHeaderText("Riepilogo Attività");
 
-        // Usiamo una TextArea per permettere il copia-incolla
+        // Configurazione TextArea (invariata)
         TextArea textArea = new TextArea(text);
         textArea.setEditable(false);
         textArea.setWrapText(true);
-
         textArea.setMaxWidth(Double.MAX_VALUE);
         textArea.setMaxHeight(Double.MAX_VALUE);
         GridPane.setVgrow(textArea, Priority.ALWAYS);
         GridPane.setHgrow(textArea, Priority.ALWAYS);
-
         GridPane expContent = new GridPane();
         expContent.setMaxWidth(Double.MAX_VALUE);
         expContent.add(textArea, 0, 0);
-
         alert.getDialogPane().setContent(expContent);
+
+        // --- SOLUZIONE 1: Pulsanti Vicini ---
+        // Usiamo OK_DONE per "Salva" così JavaFX lo raggruppa a destra insieme a CANCEL_CLOSE
+        ButtonType buttonSave = new ButtonType("Salva su File", ButtonBar.ButtonData.OK_DONE);
+        ButtonType buttonClose = new ButtonType("Chiudi", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(buttonSave, buttonClose);
+
+        // --- SOLUZIONE 2: Impedire la chiusura automatica ---
+        // Recuperiamo il nodo Button reale dall'Alert
+        Button saveBtn = (Button) alert.getDialogPane().lookupButton(buttonSave);
+        
+        // Aggiungiamo un filtro all'evento. Questo viene eseguito PRIMA che l'Alert gestisca il click.
+        saveBtn.addEventFilter(ActionEvent.ACTION, event -> {
+            // 1. Eseguiamo il salvataggio
+            saveReportToFile(text);
+            
+            // 2. "Consumiamo" l'evento. Questo dice a JavaFX: "Ho gestito io il click, fermati qui".
+            // Di conseguenza, l'Alert non riceve il comando di chiudersi.
+            event.consume();
+        });
+
+        // Mostriamo la finestra
         alert.showAndWait();
+    }
+
+    private void saveReportToFile(String content) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Salva Report");
+        fileChooser.setInitialFileName("Report_" + currentProject.getName().replaceAll("\\s+", "_") + ".txt");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("File di Testo", "*.txt"));
+        
+        Stage stage = (Stage) projectNameLabel.getScene().getWindow();
+        File file = fileChooser.showSaveDialog(stage);
+
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(content);
+                // Feedback opzionale
+                // System.out.println("File salvato in: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @FXML
