@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="it.unicam.cs.mpgc.jtime125667.controller.ProjectDetailController">
+    
+    <top>
+        <VBox spacing="5">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Button text="&lt; Torna ai Progetti" onAction="#handleBack"/>
+            <Label fx:id="projectNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+            <Label fx:id="projectDescriptionLabel" style="-fx-font-style: italic;"/>
+        </VBox>
+    </top>
+    
+    <center>
+        <TableView fx:id="taskTable">
+            <columns>
+                <TableColumn fx:id="titleColumn" text="Titolo" prefWidth="200"/>
+                <TableColumn fx:id="estimatedTimeColumn" text="Stima" prefWidth="100"/>
+                <TableColumn fx:id="statusColumn" text="Stato" prefWidth="100"/>
+            </columns>
+        </TableView>
+    </center>
+    
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Button text="Aggiungi Task" onAction="#handleAddTask"/>
+            <Button text="Completa Task" onAction="#handleCompleteTask"/>
+            <Button text="Elimina Task" onAction="#handleDeleteTask" style="-fx-text-fill: red;"/>
+        </HBox>
+    </bottom>
+    
+</BorderPane>
