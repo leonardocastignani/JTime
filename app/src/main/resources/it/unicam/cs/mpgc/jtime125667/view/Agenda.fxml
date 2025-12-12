@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="it.unicam.cs.mpgc.jtime125667.controller.AgendaController">
+    
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #eee;">
+            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+            <Button text="&lt; Home" onAction="#handleBack"/>
+            <Label text="Agenda Giornaliera" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label text="Seleziona Data:"/>
+            <DatePicker fx:id="agendaDatePicker" onAction="#handleDateChange"/>
+        </HBox>
+    </top>
+    
+    <center>
+        <TableView fx:id="agendaTable">
+            <columns>
+                <TableColumn fx:id="projectColumn" text="Progetto" prefWidth="150"/>
+                <TableColumn fx:id="taskColumn" text="Attività" prefWidth="250"/>
+                <TableColumn fx:id="timeColumn" text="Stima" prefWidth="100"/>
+                <TableColumn fx:id="statusColumn" text="Stato" prefWidth="100"/>
+            </columns>
+        </TableView>
+    </center>
+    
+</BorderPane>

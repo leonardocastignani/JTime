@@ -60,6 +60,18 @@ public class ProjectListController {
     }
 
     @FXML
+    private void handleOpenAgenda() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unicam/cs/mpgc/jtime125667/view/Agenda.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) projectListView.getScene().getWindow();
+            stage.setScene(new Scene(root, 800, 600));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
     private void handleNewProject() {
         // Finestra di dialogo semplice per inserire il nome
         TextInputDialog dialog = new TextInputDialog("Nuovo Progetto");

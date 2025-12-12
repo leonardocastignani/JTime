@@ -7,10 +7,13 @@ import javafx.collections.*;
 import javafx.fxml.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.stage.*;
+import javafx.util.*;
 
 import java.io.*;
-import java.time.*;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.*;
 
 public class ProjectDetailController {
@@ -56,20 +59,53 @@ public class ProjectDetailController {
 
     @FXML
     private void handleAddTask() {
-        TextInputDialog dialog = new TextInputDialog();
+        // Creiamo una Dialog personalizzata
+        Dialog<Pair<String, LocalDate>> dialog = new Dialog<>();
         dialog.setTitle("Nuovo Task");
-        dialog.setHeaderText("Aggiungi una nuova attività");
-        dialog.setContentText("Titolo del task:");
+        dialog.setHeaderText("Inserisci i dettagli del task");
 
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(title -> {
-            // Per semplicità, ora mettiamo una durata fissa di 60 min. 
-            // In futuro faremo una dialog più complessa.
-            ConcreteTask newTask = new ConcreteTask(title, "", Duration.ofMinutes(60));
+        // Setta i bottoni (OK e Cancel)
+        ButtonType loginButtonType = new ButtonType("Crea", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+
+        // Crea i campi di input
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        TextField titleField = new TextField();
+        titleField.setPromptText("Titolo");
+        DatePicker datePicker = new DatePicker();
+        datePicker.setPromptText("Data pianificata");
+
+        grid.add(new Label("Titolo:"), 0, 0);
+        grid.add(titleField, 1, 0);
+        grid.add(new Label("Data:"), 0, 1);
+        grid.add(datePicker, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Converte il risultato quando si preme OK
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                return new Pair<>(titleField.getText(), datePicker.getValue());
+            }
+            return null;
+        });
+
+        Optional<Pair<String, LocalDate>> result = dialog.showAndWait();
+
+        result.ifPresent(pair -> {
+            String title = pair.getKey();
+            LocalDate date = pair.getValue();
             
-            currentProject.addTask(newTask);
-            projectRepository.save(currentProject); // Salva progetto e task (Cascade)
-            updateView();
+            if (title != null && !title.isEmpty()) {
+                ConcreteTask newTask = new ConcreteTask(title, "", Duration.ofMinutes(60), date);
+                currentProject.addTask(newTask);
+                projectRepository.save(currentProject);
+                updateView();
+            }
         });
     }
     

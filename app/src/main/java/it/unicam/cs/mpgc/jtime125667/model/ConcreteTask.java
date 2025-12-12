@@ -1,8 +1,8 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
 import jakarta.persistence.*;
-import java.time.Duration;
-import java.util.UUID;
+import java.time.*;
+import java.util.*;
 
 @Entity
 @Table(name = "tasks")
@@ -18,6 +18,7 @@ public class ConcreteTask implements Task {
     // oppure si può usare un converter custom se necessario.
     private Duration estimatedDuration;
     private Duration actualDuration;
+    private LocalDate scheduledDate;
     
     private boolean completed;
 
@@ -31,6 +32,12 @@ public class ConcreteTask implements Task {
         this.estimatedDuration = estimatedDuration;
         this.completed = false;
         this.actualDuration = Duration.ZERO;
+        this.scheduledDate = null;
+    }
+
+    public ConcreteTask(String title, String description, Duration estimatedDuration, LocalDate scheduledDate) {
+        this(title, description, estimatedDuration);
+        this.scheduledDate = scheduledDate;
     }
 
     @Override
@@ -47,6 +54,12 @@ public class ConcreteTask implements Task {
 
     @Override
     public Duration getActualDuration() { return actualDuration; }
+
+    @Override
+    public LocalDate getScheduledDate() { return scheduledDate; }
+
+    @Override
+    public void setScheduledDate(LocalDate date) { this.scheduledDate = date; }
 
     @Override
     public boolean isCompleted() { return completed; }

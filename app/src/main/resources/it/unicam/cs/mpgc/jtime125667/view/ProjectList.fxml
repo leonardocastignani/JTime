@@ -21,6 +21,7 @@
     <bottom>
         <HBox spacing="10" alignment="CENTER_RIGHT">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Button text="📅 Apri Agenda" onAction="#handleOpenAgenda" style="-fx-base: #b6e7c9;"/>
             <Button text="Nuovo Progetto" onAction="#handleNewProject"/>
             <Button text="Apri Selezionato" onAction="#handleOpenProject"/>
         </HBox>

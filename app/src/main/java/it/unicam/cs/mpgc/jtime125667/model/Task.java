@@ -1,6 +1,6 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
-import java.time.Duration;
+import java.time.*;
 
 /**
  * Interfaccia che definisce le responsabilità di un'attività (Task).
@@ -26,6 +26,13 @@ public interface Task {
     boolean isCompleted();
     
     void complete(Duration actualDuration);
+
+    /**
+     * Restituisce la data pianificata per lo svolgimento.
+     */
+    LocalDate getScheduledDate();
+
+    void setScheduledDate(LocalDate date);
     
     // Metodi per supportare estensioni future (es. Visitor pattern per reportistica)
     // void accept(TaskVisitor visitor);
