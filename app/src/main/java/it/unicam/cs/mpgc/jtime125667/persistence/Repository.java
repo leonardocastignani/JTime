@@ -1,6 +1,6 @@
 package it.unicam.cs.mpgc.jtime125667.persistence;
 
-import java.util.List;
+import java.util.*;
 
 public interface Repository<T, ID> {
     void save(T entity);

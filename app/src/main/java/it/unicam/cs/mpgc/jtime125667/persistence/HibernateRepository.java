@@ -1,8 +1,7 @@
 package it.unicam.cs.mpgc.jtime125667.persistence;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import java.util.List;
+import org.hibernate.*;
+import java.util.*;
 
 public class HibernateRepository<T> implements Repository<T, String> {
 
@@ -17,7 +16,7 @@ public class HibernateRepository<T> implements Repository<T, String> {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.merge(entity); // merge gestisce sia save che update
+            session.merge(entity);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
@@ -35,7 +34,6 @@ public class HibernateRepository<T> implements Repository<T, String> {
     @Override
     public List<T> findAll() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            // HQL Query
             return session.createQuery("from " + type.getName(), type).list();
         }
     }

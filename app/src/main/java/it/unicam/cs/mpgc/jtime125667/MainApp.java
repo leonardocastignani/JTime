@@ -23,7 +23,7 @@ public class MainApp extends Application {
 
     @Override
     public void stop() throws Exception {
-        HibernateUtil.shutdown(); // Chiude la connessione quando chiudi la finestra
+        HibernateUtil.shutdown();
         super.stop();
     }
 

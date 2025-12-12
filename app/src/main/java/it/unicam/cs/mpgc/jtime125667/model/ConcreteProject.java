@@ -14,12 +14,11 @@ public class ConcreteProject implements Project {
     private String name;
     private String description;
 
-    // Relazione 1-a-Molti: Un progetto ha molti task.
-    // CascadeType.ALL significa che se salvo/cancello il progetto, 
-    // l'azione si propaga ai task.
-    @OneToMany(targetEntity = ConcreteTask.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "project_id") // Crea una colonna project_id nella tabella tasks
-    private List<Task> tasks = new ArrayList<>();
+    @OneToMany(targetEntity = ConcreteTask.class,
+               cascade = CascadeType.ALL,
+               fetch = FetchType.EAGER)
+    @JoinColumn(name = "project_id")
+    private List<Task> tasks = new ArrayList<Task>();
 
     private boolean completed;
 
@@ -45,14 +44,10 @@ public class ConcreteProject implements Project {
     public List<Task> getTasks() { return tasks; }
 
     @Override
-    public void addTask(Task task) {
-        this.tasks.add(task);
-    }
+    public void addTask(Task task) { this.tasks.add(task); }
 
     @Override
-    public void removeTask(Task task) {
-        this.tasks.remove(task);
-    }
+    public void removeTask(Task task) { this.tasks.remove(task); }
 
     @Override
     public boolean isCompleted() { return completed; }
@@ -61,11 +56,9 @@ public class ConcreteProject implements Project {
 
     @Override
     public void accept(ReportVisitor visitor) {
-        // Il progetto visita se stesso...
         visitor.visit(this);
-        
-        // ...e poi passa il visitatore a tutti i suoi figli (i task)
-        for (Task task : tasks) {
+
+        for (Task task : this.tasks) {
             task.accept(visitor);
         }
     }

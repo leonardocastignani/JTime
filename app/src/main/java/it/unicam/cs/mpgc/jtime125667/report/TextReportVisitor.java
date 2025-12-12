@@ -1,15 +1,12 @@
 package it.unicam.cs.mpgc.jtime125667.report;
 
-import it.unicam.cs.mpgc.jtime125667.model.Project;
-import it.unicam.cs.mpgc.jtime125667.model.Task;
+import it.unicam.cs.mpgc.jtime125667.model.*;
 
 public class TextReportVisitor implements ReportVisitor {
 
     private final StringBuilder sb = new StringBuilder();
 
-    public String getReport() {
-        return sb.toString();
-    }
+    public String getReport() { return sb.toString(); }
 
     @Override
     public void visit(Project project) {

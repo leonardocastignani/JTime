@@ -14,16 +14,13 @@ public class ConcreteTask implements Task {
 
     private String title;
     private String description;
-    
-    // Hibernate converte Duration in nanosecondi o secondi automaticamente nelle versioni recenti,
-    // oppure si può usare un converter custom se necessario.
+
     private Duration estimatedDuration;
     private Duration actualDuration;
     private LocalDate scheduledDate;
     
     private boolean completed;
 
-    // Costruttore vuoto richiesto da Hibernate
     public ConcreteTask() {}
 
     public ConcreteTask(String title, String description, Duration estimatedDuration) {

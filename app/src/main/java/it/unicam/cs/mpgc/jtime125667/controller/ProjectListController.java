@@ -8,8 +8,8 @@ import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
 
 public class ProjectListController {
 
@@ -20,43 +20,42 @@ public class ProjectListController {
     private final ObservableList<ConcreteProject> projects;
 
     public ProjectListController() {
-        this.repository = new HibernateRepository<>(ConcreteProject.class);
+        this.repository = new HibernateRepository<ConcreteProject>(ConcreteProject.class);
         this.projects = FXCollections.observableArrayList();
     }
 
     @FXML
     public void initialize() {
-        // Configura come visualizzare gli oggetti nella lista (mostra solo il nome)
-        projectListView.setCellFactory(param -> new ListCell<>() {
+        this.projectListView.setCellFactory(param -> new ListCell<ConcreteProject>() {
             @Override
             protected void updateItem(ConcreteProject item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null || item.getName() == null) {
-                    setText(null);
+                    this.setText(null);
                 } else {
-                    setText(item.getName() + " (" + item.getDescription() + ")");
+                    this.setText(item.getName() + " (" + item.getDescription() + ")");
                 }
             }
         });
 
-        loadData();
-        projectListView.setItems(projects);
+        this.loadData();
+        this.projectListView.setItems(this.projects);
 
-        if (projects.isEmpty()) {
-            createSampleData();
+        if (this.projects.isEmpty()) {
+            this.createSampleData();
         }
     }
 
     private void createSampleData() {
         System.out.println("Database vuoto. Creo dati di esempio...");
         ConcreteProject sample = new ConcreteProject("Progetto Demo", "Creato automaticamente all'avvio");
-        repository.save(sample);
-        loadData(); // Ricarica la lista per mostrarlo
+        this.repository.save(sample);
+        this.loadData();
     }
 
     private void loadData() {
-        projects.clear();
-        projects.addAll(repository.findAll());
+        this.projects.clear();
+        this.projects.addAll(this.repository.findAll());
     }
 
     @FXML
@@ -64,7 +63,7 @@ public class ProjectListController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unicam/cs/mpgc/jtime125667/view/Agenda.fxml"));
             Parent root = loader.load();
-            Stage stage = (Stage) projectListView.getScene().getWindow();
+            Stage stage = (Stage) this.projectListView.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,20 +72,18 @@ public class ProjectListController {
 
     @FXML
     private void handleNewProject() {
-        // Finestra di dialogo semplice per inserire il nome
         TextInputDialog dialog = new TextInputDialog("Nuovo Progetto");
         dialog.setTitle("Crea Progetto");
         dialog.setHeaderText("Inserisci i dettagli del nuovo progetto");
         dialog.setContentText("Nome del progetto:");
 
-        // Aspetta l'input dell'utente
         Optional<String> result = dialog.showAndWait();
 
         result.ifPresent(name -> {
             if (!name.trim().isEmpty()) {
                 ConcreteProject newProject = new ConcreteProject(name, "Descrizione da modificare...");
-                repository.save(newProject);
-                loadData(); // Aggiorna la lista
+                this.repository.save(newProject);
+                this.loadData();
                 System.out.println("Progetto salvato: " + name);
             }
         });
@@ -94,19 +91,16 @@ public class ProjectListController {
 
     @FXML
     private void handleOpenProject() {
-        ConcreteProject selected = projectListView.getSelectionModel().getSelectedItem();
+        ConcreteProject selected = this.projectListView.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
-                // Carica la vista di dettaglio
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unicam/cs/mpgc/jtime125667/view/ProjectDetail.fxml"));
                 Parent root = loader.load();
 
-                // Ottieni il controller e passagli il progetto selezionato
                 ProjectDetailController controller = loader.getController();
                 controller.setProject(selected);
 
-                // Cambia la scena
-                Stage stage = (Stage) projectListView.getScene().getWindow();
+                Stage stage = (Stage) this.projectListView.getScene().getWindow();
                 stage.setScene(new Scene(root, 800, 600));
                 
             } catch (IOException e) {
@@ -114,7 +108,6 @@ public class ProjectListController {
                 System.err.println("Impossibile caricare la vista di dettaglio.");
             }
         } else {
-            // Opzionale: Mostra un alert se nessun progetto è selezionato
             System.out.println("Seleziona un progetto prima di aprire.");
         }
     }

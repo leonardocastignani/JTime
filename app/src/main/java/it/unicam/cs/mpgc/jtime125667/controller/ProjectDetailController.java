@@ -5,7 +5,7 @@ import it.unicam.cs.mpgc.jtime125667.persistence.*;
 import it.unicam.cs.mpgc.jtime125667.report.*;
 import javafx.beans.property.*;
 import javafx.collections.*;
-import javafx.event.ActionEvent;
+import javafx.event.*;
 import javafx.fxml.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -32,43 +32,39 @@ public class ProjectDetailController {
 
     public void setProject(ConcreteProject project) {
         this.currentProject = project;
-        this.projectRepository = new HibernateRepository<>(ConcreteProject.class);
-        updateView();
+        this.projectRepository = new HibernateRepository<ConcreteProject>(ConcreteProject.class);
+        this.updateView();
     }
 
     @FXML
     public void initialize() {
-        // Configurazione Colonne Tabella
-        titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
+        this.titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
         
-        estimatedTimeColumn.setCellValueFactory(cellData -> {
+        this.estimatedTimeColumn.setCellValueFactory(cellData -> {
             Duration d = cellData.getValue().getEstimatedDuration();
             return new SimpleStringProperty(d != null ? d.toMinutes() + " min" : "-");
         });
 
-        statusColumn.setCellValueFactory(cellData -> 
+        this.statusColumn.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().isCompleted() ? "Completato" : "In Corso"));
     }
 
     private void updateView() {
-        if (currentProject != null) {
-            projectNameLabel.setText(currentProject.getName());
-            projectDescriptionLabel.setText(currentProject.getDescription());
-            // Aggiorna la tabella convertendo la lista in ObservableList
-            taskTable.setItems(FXCollections.observableArrayList(currentProject.getTasks()));
+        if (this.currentProject != null) {
+            this.projectNameLabel.setText(this.currentProject.getName());
+            this.projectDescriptionLabel.setText(this.currentProject.getDescription());
+            this.taskTable.setItems(FXCollections.observableArrayList(this.currentProject.getTasks()));
         }
     }
 
     @FXML
     private void handleReport() {
-        if (currentProject == null) return;
+        if (this.currentProject == null) return;
 
-        // 1. Genera il report
         TextReportVisitor visitor = new TextReportVisitor();
-        currentProject.accept(visitor);
+        this.currentProject.accept(visitor);
         String reportText = visitor.getReport();
 
-        // 2. Mostra la finestra con il pulsante di salvataggio integrato
         showReportDialog(reportText);
     }
 
@@ -77,7 +73,6 @@ public class ProjectDetailController {
         alert.setTitle("Report Progetto");
         alert.setHeaderText("Riepilogo Attività");
 
-        // Configurazione TextArea (invariata)
         TextArea textArea = new TextArea(text);
         textArea.setEditable(false);
         textArea.setWrapText(true);
@@ -90,45 +85,36 @@ public class ProjectDetailController {
         expContent.add(textArea, 0, 0);
         alert.getDialogPane().setContent(expContent);
 
-        // --- SOLUZIONE 1: Pulsanti Vicini ---
-        // Usiamo OK_DONE per "Salva" così JavaFX lo raggruppa a destra insieme a CANCEL_CLOSE
         ButtonType buttonSave = new ButtonType("Salva su File", ButtonBar.ButtonData.OK_DONE);
         ButtonType buttonClose = new ButtonType("Chiudi", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(buttonSave, buttonClose);
 
-        // --- SOLUZIONE 2: Impedire la chiusura automatica ---
-        // Recuperiamo il nodo Button reale dall'Alert
         Button saveBtn = (Button) alert.getDialogPane().lookupButton(buttonSave);
-        
-        // Aggiungiamo un filtro all'evento. Questo viene eseguito PRIMA che l'Alert gestisca il click.
+
         saveBtn.addEventFilter(ActionEvent.ACTION, event -> {
-            // 1. Eseguiamo il salvataggio
-            saveReportToFile(text);
-            
-            // 2. "Consumiamo" l'evento. Questo dice a JavaFX: "Ho gestito io il click, fermati qui".
-            // Di conseguenza, l'Alert non riceve il comando di chiudersi.
+            this.saveReportToFile(text);
             event.consume();
         });
 
-        // Mostriamo la finestra
         alert.showAndWait();
     }
 
     private void saveReportToFile(String content) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Salva Report");
-        fileChooser.setInitialFileName("Report_" + currentProject.getName().replaceAll("\\s+", "_") + ".txt");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("File di Testo", "*.txt"));
+        fileChooser.setInitialFileName("Report_" + this.currentProject.getName().replaceAll("\\s+", "_") + ".md");
+
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("File Markdown (*.md)", "*.md")
+        );
         
-        Stage stage = (Stage) projectNameLabel.getScene().getWindow();
+        Stage stage = (Stage) this.projectNameLabel.getScene().getWindow();
         File file = fileChooser.showSaveDialog(stage);
 
         if (file != null) {
             try (FileWriter writer = new FileWriter(file)) {
                 writer.write(content);
-                // Feedback opzionale
-                // System.out.println("File salvato in: " + file.getAbsolutePath());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -137,16 +123,13 @@ public class ProjectDetailController {
 
     @FXML
     private void handleAddTask() {
-        // Creiamo una Dialog personalizzata
-        Dialog<Pair<String, LocalDate>> dialog = new Dialog<>();
+        Dialog<Pair<String, LocalDate>> dialog = new Dialog<Pair<String, LocalDate>>();
         dialog.setTitle("Nuovo Task");
         dialog.setHeaderText("Inserisci i dettagli del task");
 
-        // Setta i bottoni (OK e Cancel)
         ButtonType loginButtonType = new ButtonType("Crea", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
-        // Crea i campi di input
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -164,10 +147,9 @@ public class ProjectDetailController {
 
         dialog.getDialogPane().setContent(grid);
 
-        // Converte il risultato quando si preme OK
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                return new Pair<>(titleField.getText(), datePicker.getValue());
+                return new Pair<String, LocalDate>(titleField.getText(), datePicker.getValue());
             }
             return null;
         });
@@ -180,40 +162,39 @@ public class ProjectDetailController {
             
             if (title != null && !title.isEmpty()) {
                 ConcreteTask newTask = new ConcreteTask(title, "", Duration.ofMinutes(60), date);
-                currentProject.addTask(newTask);
-                projectRepository.save(currentProject);
-                updateView();
+                this.currentProject.addTask(newTask);
+                this.projectRepository.save(this.currentProject);
+                this.updateView();
             }
         });
     }
     
     @FXML
     private void handleCompleteTask() {
-        Task selected = taskTable.getSelectionModel().getSelectedItem();
+        Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null && !selected.isCompleted()) {
-            selected.complete(selected.getEstimatedDuration()); // Simuliamo durata effettiva = stimata
-            projectRepository.save(currentProject);
-            taskTable.refresh(); // Rinfresca la tabella per mostrare "Completato"
+            selected.complete(selected.getEstimatedDuration());
+            this.projectRepository.save(this.currentProject);
+            this.taskTable.refresh();
         }
     }
 
     @FXML
     private void handleDeleteTask() {
-        Task selected = taskTable.getSelectionModel().getSelectedItem();
+        Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            currentProject.removeTask(selected);
-            projectRepository.save(currentProject);
-            updateView();
+            this.currentProject.removeTask(selected);
+            this.projectRepository.save(this.currentProject);
+            this.updateView();
         }
     }
 
     @FXML
     private void handleBack() {
         try {
-            // Torna alla lista progetti
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unicam/cs/mpgc/jtime125667/view/ProjectList.fxml"));
             Parent root = loader.load();
-            Stage stage = (Stage) projectNameLabel.getScene().getWindow();
+            Stage stage = (Stage) this.projectNameLabel.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));
         } catch (IOException e) {
             e.printStackTrace();
