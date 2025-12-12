@@ -11,7 +11,6 @@ import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
-import javafx.util.*;
 
 import java.io.*;
 import java.time.Duration;
@@ -168,49 +167,81 @@ public class ProjectDetailController {
             return;
         }
 
-        Dialog<Pair<String, LocalDate>> dialog = new Dialog<>();
+        // Cambiamo il tipo della Dialog per restituire direttamente un oggetto ConcreteTask
+        Dialog<ConcreteTask> dialog = new Dialog<>();
         dialog.setTitle("Nuovo Task");
         dialog.setHeaderText("Inserisci i dettagli del task");
 
-        ButtonType loginButtonType = new ButtonType("Crea", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+        ButtonType createButtonType = new ButtonType("Crea", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
 
+        // Layout Griglia
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
 
+        // Campi di Input
         TextField titleField = new TextField();
-        titleField.setPromptText("Titolo");
+        titleField.setPromptText("Titolo attività");
+
+        TextArea descriptionField = new TextArea();
+        descriptionField.setPromptText("Descrizione attività");
+        descriptionField.setPrefRowCount(3);
+        descriptionField.setWrapText(true);
+
+        TextField durationField = new TextField("60"); // Default 60 min
+        durationField.setPromptText("Minuti");
+
         DatePicker datePicker = new DatePicker();
         datePicker.setPromptText("Data pianificata");
 
+        // Aggiunta alla griglia
         grid.add(new Label("Titolo:"), 0, 0);
         grid.add(titleField, 1, 0);
-        grid.add(new Label("Data:"), 0, 1);
-        grid.add(datePicker, 1, 1);
+        
+        grid.add(new Label("Descrizione:"), 0, 1);
+        grid.add(descriptionField, 1, 1);
+        
+        grid.add(new Label("Stima (min):"), 0, 2);
+        grid.add(durationField, 1, 2);
+        
+        grid.add(new Label("Data:"), 0, 3);
+        grid.add(datePicker, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
 
+        // Convertitore Risultato
         dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == loginButtonType) {
-                return new Pair<>(titleField.getText(), datePicker.getValue());
+            if (dialogButton == createButtonType) {
+                String title = titleField.getText();
+                String desc = descriptionField.getText();
+                String durationStr = durationField.getText();
+                LocalDate date = datePicker.getValue();
+
+                if (title == null || title.trim().isEmpty()) {
+                    return null; // Titolo obbligatorio
+                }
+
+                long minutes = 60;
+                try {
+                    minutes = Long.parseLong(durationStr);
+                } catch (NumberFormatException e) {
+                    // Se l'utente scrive testo invece di numeri, usiamo default
+                }
+
+                // Creiamo il task con TUTTI i dati inseriti
+                return new ConcreteTask(title, desc, Duration.ofMinutes(minutes), date);
             }
             return null;
         });
 
-        Optional<Pair<String, LocalDate>> result = dialog.showAndWait();
+        Optional<ConcreteTask> result = dialog.showAndWait();
 
-        result.ifPresent(pair -> {
-            String title = pair.getKey();
-            LocalDate date = pair.getValue();
-            
-            if (title != null && !title.isEmpty()) {
-                ConcreteTask newTask = new ConcreteTask(title, "", Duration.ofMinutes(60), date);
-                this.currentProject.addTask(newTask);
-                this.projectRepository.save(this.currentProject);
-                this.updateView();
-            }
+        result.ifPresent(newTask -> {
+            this.currentProject.addTask(newTask);
+            this.projectRepository.save(this.currentProject);
+            this.updateView();
         });
     }
     
