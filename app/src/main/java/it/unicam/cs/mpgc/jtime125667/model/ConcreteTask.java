@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
+import it.unicam.cs.mpgc.jtime125667.report.*;
 import jakarta.persistence.*;
 import java.time.*;
 import java.util.*;
@@ -68,5 +69,10 @@ public class ConcreteTask implements Task {
     public void complete(Duration actualDuration) {
         this.actualDuration = actualDuration;
         this.completed = true;
+    }
+
+    @Override
+    public void accept(ReportVisitor visitor) {
+        visitor.visit(this);
     }
 }

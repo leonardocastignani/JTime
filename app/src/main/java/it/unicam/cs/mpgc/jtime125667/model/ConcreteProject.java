@@ -1,9 +1,8 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
+import it.unicam.cs.mpgc.jtime125667.report.*;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "projects")
@@ -59,4 +58,15 @@ public class ConcreteProject implements Project {
     public boolean isCompleted() { return completed; }
     
     public void setCompleted(boolean completed) { this.completed = completed; }
+
+    @Override
+    public void accept(ReportVisitor visitor) {
+        // Il progetto visita se stesso...
+        visitor.visit(this);
+        
+        // ...e poi passa il visitatore a tutti i suoi figli (i task)
+        for (Task task : tasks) {
+            task.accept(visitor);
+        }
+    }
 }

@@ -1,11 +1,12 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
+import it.unicam.cs.mpgc.jtime125667.report.*;
 import java.time.*;
 
 /**
  * Interfaccia che definisce le responsabilità di un'attività (Task).
  */
-public interface Task {
+public interface Task extends Visitable {
     
     String getId();
     

@@ -1,8 +1,9 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
-import java.util.List;
+import it.unicam.cs.mpgc.jtime125667.report.*;
+import java.util.*;
 
-public interface Project {
+public interface Project extends Visitable {
     String getId();
     String getName();
     String getDescription();

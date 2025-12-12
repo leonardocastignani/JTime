@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.jtime125667.controller;
 
 import it.unicam.cs.mpgc.jtime125667.model.*;
 import it.unicam.cs.mpgc.jtime125667.persistence.*;
+import it.unicam.cs.mpgc.jtime125667.report.*;
 import javafx.beans.property.*;
 import javafx.collections.*;
 import javafx.fxml.*;
@@ -55,6 +56,46 @@ public class ProjectDetailController {
             // Aggiorna la tabella convertendo la lista in ObservableList
             taskTable.setItems(FXCollections.observableArrayList(currentProject.getTasks()));
         }
+    }
+
+    @FXML
+    private void handleReport() {
+        if (currentProject == null) return;
+
+        // 1. Crea il Visitor
+        TextReportVisitor visitor = new TextReportVisitor();
+        
+        // 2. Lancia la visita (il pattern fa tutto il lavoro di attraversamento)
+        currentProject.accept(visitor);
+        
+        // 3. Ottieni il risultato
+        String reportText = visitor.getReport();
+
+        // 4. Mostra il risultato in una finestra
+        showReportDialog(reportText);
+    }
+
+    private void showReportDialog(String text) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Report Progetto");
+        alert.setHeaderText("Riepilogo Attività");
+
+        // Usiamo una TextArea per permettere il copia-incolla
+        TextArea textArea = new TextArea(text);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+        GridPane.setVgrow(textArea, Priority.ALWAYS);
+        GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+        GridPane expContent = new GridPane();
+        expContent.setMaxWidth(Double.MAX_VALUE);
+        expContent.add(textArea, 0, 0);
+
+        alert.getDialogPane().setContent(expContent);
+        alert.showAndWait();
     }
 
     @FXML
