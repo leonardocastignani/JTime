@@ -111,4 +111,27 @@ public class ProjectListController {
             System.out.println("Seleziona un progetto prima di aprire.");
         }
     }
+
+    @FXML
+    private void handleDeleteProject() {
+        ConcreteProject selected = projectListView.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            // Chiedi conferma
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Elimina Progetto");
+            alert.setHeaderText("Sei sicuro di voler eliminare: " + selected.getName() + "?");
+            alert.setContentText("Questa azione eliminerà anche tutte le attività associate.");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                // Elimina dal DB
+                repository.delete(selected);
+                // Rimuovi dalla lista visualizzata
+                projects.remove(selected);
+            }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Seleziona un progetto da eliminare.");
+            alert.show();
+        }
+    }
 }
