@@ -5,3 +5,9 @@
 build
 
 *.pdf
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore Database data folder
+app/data/
