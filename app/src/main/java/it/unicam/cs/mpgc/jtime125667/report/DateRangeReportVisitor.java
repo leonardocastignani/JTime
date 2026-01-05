@@ -30,6 +30,11 @@ public class DateRangeReportVisitor implements ReportVisitor {
         if (date != null && !date.isBefore(start) && !date.isAfter(end)) {
             sb.append(date).append(": ").append(task.getTitle())
               .append(" (").append(task.isCompleted() ? "Completato" : "In corso").append(")\n");
+
+            if (!task.getTags().isEmpty()) {
+                String tags = String.join(", ", task.getTags());
+                sb.append("   Tags: ").append(tags).append("\n");
+            }
         }
     }
 }
