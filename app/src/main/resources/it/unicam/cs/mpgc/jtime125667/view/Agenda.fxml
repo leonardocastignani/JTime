@@ -13,6 +13,7 @@
             <Button text="&lt; Home" onAction="#handleBack"/>
             <Label text="Agenda Giornaliera" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS" />
+            <Button text="📄 Report Giorno" onAction="#handleDailyReport"/>
             <Label text="Seleziona Data:"/>
             <DatePicker fx:id="agendaDatePicker" onAction="#handleDateChange"/>
         </HBox>
@@ -28,5 +29,11 @@
             </columns>
         </TableView>
     </center>
+
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 10;">
+            <Label fx:id="totalEffortLabel" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+        </HBox>
+    </bottom>
     
 </BorderPane>

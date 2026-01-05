@@ -2,6 +2,9 @@ package it.unicam.cs.mpgc.jtime125667.controller;
 
 import it.unicam.cs.mpgc.jtime125667.model.*;
 import it.unicam.cs.mpgc.jtime125667.persistence.*;
+import it.unicam.cs.mpgc.jtime125667.report.*;
+import it.unicam.cs.mpgc.jtime125667.util.*;
+
 import javafx.beans.property.*;
 import javafx.collections.*;
 import javafx.fxml.*;
@@ -22,6 +25,7 @@ public class AgendaController {
     @FXML private TableColumn<AgendaItem, String> taskColumn;
     @FXML private TableColumn<AgendaItem, String> timeColumn;
     @FXML private TableColumn<AgendaItem, String> statusColumn;
+    @FXML private Label totalEffortLabel;
 
     private final HibernateRepository<ConcreteProject> repository;
 
@@ -58,6 +62,18 @@ public class AgendaController {
             .collect(Collectors.toList());
 
         this.agendaTable.setItems(FXCollections.observableArrayList(items));
+
+        long totalMinutes = items.stream()
+                .mapToLong(item -> item.task.getEstimatedDuration().toMinutes())
+                .sum();
+        
+        long hours = totalMinutes / 60;
+        long min = totalMinutes % 60;
+        totalEffortLabel.setText("Impegno Totale: " + hours + "h " + min + "m");
+        
+        // Opzionale: Colora di rosso se supera le 8 ore
+        if (totalMinutes > 480) totalEffortLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+        else totalEffortLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold;");
     }
 
     @FXML
@@ -80,5 +96,26 @@ public class AgendaController {
             this.projectName = projectName;
             this.task = task;
         }
+    }
+
+    @FXML
+    private void handleDailyReport() {
+        LocalDate date = agendaDatePicker.getValue();
+        if (date == null) return;
+
+        DateRangeReportVisitor visitor = new DateRangeReportVisitor(date, date);
+        
+        List<ConcreteProject> allProjects = repository.findAll();
+        for (ConcreteProject p : allProjects) {
+            p.accept(visitor);
+        }
+
+        // UNA SOLA RIGA DI CODICE ORA!
+        // Usiamo agendaDatePicker.getScene().getWindow() per ottenere lo Stage corrente
+        ReportManager.showReportDialog(
+            agendaDatePicker.getScene().getWindow(), 
+            visitor.getReport(), 
+            "Report_Agenda_" + date.toString()
+        );
     }
 }

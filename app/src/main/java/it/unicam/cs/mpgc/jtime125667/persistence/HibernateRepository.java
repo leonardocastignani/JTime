@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.jtime125667.persistence;
 
 import org.hibernate.*;
+
 import java.util.*;
 
 public class HibernateRepository<T> implements Repository<T, String> {

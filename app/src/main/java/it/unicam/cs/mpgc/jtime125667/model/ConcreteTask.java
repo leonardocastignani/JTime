@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
 import it.unicam.cs.mpgc.jtime125667.report.*;
+
 import jakarta.persistence.*;
 import java.time.*;
 import java.util.*;
@@ -18,6 +19,9 @@ public class ConcreteTask implements Task {
     private Duration estimatedDuration;
     private Duration actualDuration;
     private LocalDate scheduledDate;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> tags = new ArrayList<String>();
     
     private boolean completed;
 
@@ -57,7 +61,13 @@ public class ConcreteTask implements Task {
     public LocalDate getScheduledDate() { return scheduledDate; }
 
     @Override
+    public List<String> getTags() { return tags; }
+
+    @Override
     public void setScheduledDate(LocalDate date) { this.scheduledDate = date; }
+
+    @Override
+    public void addTag(String tag) { this.tags.add(tag); }
 
     @Override
     public boolean isCompleted() { return completed; }

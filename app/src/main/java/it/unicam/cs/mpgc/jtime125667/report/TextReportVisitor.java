@@ -28,6 +28,17 @@ public class TextReportVisitor implements ReportVisitor {
         if (task.getScheduledDate() != null) {
             sb.append(" (Data: ").append(task.getScheduledDate()).append(")");
         }
+
+        if (task.isCompleted()) {
+            long estimated = task.getEstimatedDuration().toMinutes();
+            long actual = task.getActualDuration().toMinutes();
+            long diff = actual - estimated;
+            
+            sb.append("\n     [Stima: ").append(estimated).append("m | Reale: ").append(actual).append("m");
+            if (diff > 0) sb.append(" | Ritardo: +").append(diff).append("m");
+            else if (diff < 0) sb.append(" | Anticipo: ").append(diff).append("m");
+            sb.append("]");
+        }
         
         sb.append("\n");
     }

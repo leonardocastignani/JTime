@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.jtime125667.model;
 
 import it.unicam.cs.mpgc.jtime125667.report.*;
+
 import jakarta.persistence.*;
 import java.util.*;
 
