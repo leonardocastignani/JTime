@@ -5,3 +5,7 @@
 build
 
 *.pdf
+
+.vscode/
+
+.data/
