@@ -19,8 +19,6 @@ public class DateRangeReportVisitor implements ReportVisitor {
 
     @Override
     public void visit(Project project) {
-        // Non stampiamo il progetto a meno che non abbia task nel range, 
-        // ma per semplicità visitiamo solo i figli.
         for (Task task : project.getTasks()) {
             task.accept(this);
         }

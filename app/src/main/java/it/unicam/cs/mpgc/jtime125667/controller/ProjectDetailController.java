@@ -9,7 +9,6 @@ import javafx.beans.property.*;
 import javafx.collections.*;
 import javafx.fxml.*;
 import javafx.scene.control.*;
-
 import java.time.Duration;
 
 public class ProjectDetailController {
@@ -21,9 +20,15 @@ public class ProjectDetailController {
     @FXML private TableColumn<Task, String> titleColumn;
     @FXML private TableColumn<Task, String> estimatedTimeColumn;
     @FXML private TableColumn<Task, String> statusColumn;
+    @FXML private TableColumn<Task, String> tagsColumn;
 
     private ConcreteProject currentProject;
-    private final HibernateRepository<ConcreteProject> repository = new HibernateRepository<ConcreteProject>(ConcreteProject.class);
+
+    private final Repository<ConcreteProject, String> repository;
+
+    public ProjectDetailController() {
+        this.repository = new HibernateRepository<>(ConcreteProject.class);
+    }
 
     public void setProject(ConcreteProject project) {
         this.currentProject = project;
@@ -35,13 +40,19 @@ public class ProjectDetailController {
         titleColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTitle()));
         estimatedTimeColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstimatedDuration().toMinutes() + " min"));
         statusColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isCompleted() ? "Completato" : "In Corso"));
+
+        if (tagsColumn != null) {
+            tagsColumn.setCellValueFactory(c -> new SimpleStringProperty(String.join(", ", c.getValue().getTags())));
+        }
     }
 
     private void updateView() {
         if (currentProject != null) {
             projectNameLabel.setText(currentProject.getName());
             projectDescriptionLabel.setText(currentProject.getDescription());
+
             completedCheckBox.setSelected(currentProject.isCompleted());
+            
             taskTable.setItems(FXCollections.observableArrayList(currentProject.getTasks()));
             taskTable.setDisable(currentProject.isCompleted());
         }
@@ -84,38 +95,28 @@ public class ProjectDetailController {
         if (this.currentProject == null) return;
 
         if (this.currentProject.isCompleted()) {
-            // Se il progetto era completato e l'utente toglie la spunta -> Riapri
             this.currentProject.setCompleted(false);
         } else {
-            // Se l'utente prova a completare il progetto -> Verifica vincoli
-            boolean allTasksDone = this.currentProject.getTasks().stream().allMatch(Task::isCompleted);
-            
-            if (!allTasksDone) {
+            if (!this.currentProject.canBeClosed()) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Impossibile chiudere");
                 alert.setHeaderText("Attività pendenti");
-                alert.setContentText("Non puoi chiudere il progetto finché tutte le attività non sono completate.");
+                alert.setContentText("Il progetto ha attività non completate. Completale prima di chiudere il progetto.");
                 alert.showAndWait();
                 
-                // Ripristina la checkbox allo stato non selezionato
                 this.completedCheckBox.setSelected(false);
                 return;
             }
-            // Se tutti i task sono completati -> Chiudi
             this.currentProject.setCompleted(true);
         }
         
-        // Salva e aggiorna la vista
         this.repository.save(this.currentProject);
         this.updateView();
     }
 
     @FXML
     private void handleDeleteTask() {
-        // Se il progetto è completato, impedisci l'eliminazione
-        if (this.currentProject.isCompleted()) {
-            return; 
-        }
+        if (this.currentProject.isCompleted()) return; 
         
         Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null) {

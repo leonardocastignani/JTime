@@ -27,10 +27,10 @@ public class AgendaController {
     @FXML private TableColumn<AgendaItem, String> statusColumn;
     @FXML private Label totalEffortLabel;
 
-    private final HibernateRepository<ConcreteProject> repository;
+    private final Repository<ConcreteProject, String> repository;
 
     public AgendaController() {
-        this.repository = new HibernateRepository<ConcreteProject>(ConcreteProject.class);
+        this.repository = new HibernateRepository<>(ConcreteProject.class);
     }
 
     @FXML
@@ -70,10 +70,12 @@ public class AgendaController {
         long hours = totalMinutes / 60;
         long min = totalMinutes % 60;
         totalEffortLabel.setText("Impegno Totale: " + hours + "h " + min + "m");
-        
-        // Opzionale: Colora di rosso se supera le 8 ore
-        if (totalMinutes > 480) totalEffortLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-        else totalEffortLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold;");
+
+        if (totalMinutes > 480) {
+            totalEffortLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+        } else {
+            totalEffortLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold;");
+        }
     }
 
     @FXML
@@ -110,8 +112,6 @@ public class AgendaController {
             p.accept(visitor);
         }
 
-        // UNA SOLA RIGA DI CODICE ORA!
-        // Usiamo agendaDatePicker.getScene().getWindow() per ottenere lo Stage corrente
         ReportManager.showReportDialog(
             agendaDatePicker.getScene().getWindow(), 
             visitor.getReport(), 

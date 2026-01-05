@@ -18,7 +18,4 @@ public interface Task extends Visitable {
     void setScheduledDate(LocalDate date);
     List<String> getTags();
     void addTag(String tag);
-    
-    // Metodi per supportare estensioni future (es. Visitor pattern per reportistica)
-    // void accept(TaskVisitor visitor);
 }

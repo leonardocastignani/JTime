@@ -19,7 +19,6 @@ public class SceneManager {
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxmlPath));
             Parent root = loader.load();
 
-            // Se c'è una configurazione da fare, falla ora
             if (controllerSetup != null) {
                 T controller = loader.getController();
                 controllerSetup.accept(controller);

@@ -55,6 +55,11 @@ public class ConcreteProject implements Project {
     
     public void setCompleted(boolean completed) { this.completed = completed; }
 
+    public boolean canBeClosed() {
+        if (this.tasks.isEmpty()) return true;
+        return this.tasks.stream().allMatch(Task::isCompleted);
+    }
+
     @Override
     public void accept(ReportVisitor visitor) {
         visitor.visit(this);

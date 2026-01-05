@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.*;
 
 public class DialogManager {
+    
     public static Optional<Pair<String, String>> showNewProjectDialog() {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Nuovo Progetto");
@@ -52,11 +53,14 @@ public class DialogManager {
         TextArea descField = new TextArea(); descField.setPrefRowCount(2);
         TextField durationField = new TextField("60");
         DatePicker datePicker = new DatePicker();
+        TextField tagsField = new TextField();
+        tagsField.setPromptText("Es: urgente, java, frontend");
 
         grid.add(new Label("Titolo:"), 0, 0); grid.add(titleField, 1, 0);
         grid.add(new Label("Descrizione:"), 0, 1); grid.add(descField, 1, 1);
         grid.add(new Label("Stima (min):"), 0, 2); grid.add(durationField, 1, 2);
         grid.add(new Label("Data:"), 0, 3); grid.add(datePicker, 1, 3);
+        grid.add(new Label("Tags:"), 0, 4); grid.add(tagsField, 1, 4);
         
         dialog.getDialogPane().setContent(grid);
 
@@ -64,7 +68,16 @@ public class DialogManager {
             if (btn == ButtonType.OK && !titleField.getText().isEmpty()) {
                 long min = 60;
                 try { min = Long.parseLong(durationField.getText()); } catch (Exception e) {}
-                return new ConcreteTask(titleField.getText(), descField.getText(), Duration.ofMinutes(min), datePicker.getValue());
+                
+                ConcreteTask newTask = new ConcreteTask(titleField.getText(), descField.getText(), Duration.ofMinutes(min), datePicker.getValue());
+
+                String tagsInput = tagsField.getText();
+                if (!tagsInput.isEmpty()) {
+                    for (String tag : tagsInput.split(",")) {
+                        newTask.getTags().add(tag.trim());
+                    }
+                }
+                return newTask;
             }
             return null;
         });
