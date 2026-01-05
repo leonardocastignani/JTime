@@ -4,42 +4,39 @@ import it.unicam.cs.mpgc.jtime125667.model.*;
 
 public class TextReportVisitor implements ReportVisitor {
 
-    private final StringBuilder sb = new StringBuilder();
-
-    public String getReport() { return sb.toString(); }
+    private StringBuilder reportBuilder = new StringBuilder();
 
     @Override
     public void visit(Project project) {
-        sb.append("========================================\n");
-        sb.append("PROGETTO: ").append(project.getName()).append("\n");
-        sb.append("Descrizione: ").append(project.getDescription()).append("\n");
-        sb.append("Stato: ").append(project.isCompleted() ? "Completato" : "In Corso").append("\n");
-        sb.append("----------------------------------------\n");
-        sb.append("ATTIVITÀ:\n");
+        reportBuilder.append("PROGETTO: ").append(project.getName()).append("\n")
+                     .append("Descrizione: ").append(project.getDescription()).append("\n")
+                     .append("Stato: ").append(project.isCompleted() ? "Completato" : "In Corso")
+                     .append("\n--------------------------------------------------\n");
     }
 
     @Override
     public void visit(Task task) {
-        sb.append(" - [")
-          .append(task.isCompleted() ? "X" : " ")
-          .append("] ")
-          .append(task.getTitle());
-        
-        if (task.getScheduledDate() != null) {
-            sb.append(" (Data: ").append(task.getScheduledDate()).append(")");
-        }
+        reportBuilder.append(" - [")
+                     .append(task.isCompleted() ? "X" : " ")
+                     .append("] ")
+                     .append(task.getTitle())
+                     .append(" (Stimati: ").append(task.getEstimatedDuration().toMinutes()).append("m");
 
         if (task.isCompleted()) {
-            long estimated = task.getEstimatedDuration().toMinutes();
-            long actual = task.getActualDuration().toMinutes();
-            long diff = actual - estimated;
-            
-            sb.append("\n     [Stima: ").append(estimated).append("m | Reale: ").append(actual).append("m");
-            if (diff > 0) sb.append(" | Ritardo: +").append(diff).append("m");
-            else if (diff < 0) sb.append(" | Anticipo: ").append(diff).append("m");
-            sb.append("]");
+            reportBuilder.append(", Effettivi: ").append(task.getActualDuration().toMinutes()).append("m");
         }
         
-        sb.append("\n");
+        reportBuilder.append(")\n");
+
+        if (!task.getTags().isEmpty()) {
+            String tags = String.join(", ", task.getTags());
+            reportBuilder.append("   Tags: ").append(tags).append("\n");
+        }
+        
+        reportBuilder.append("\n");
+    }
+
+    public String getReport() {
+        return reportBuilder.toString();
     }
 }

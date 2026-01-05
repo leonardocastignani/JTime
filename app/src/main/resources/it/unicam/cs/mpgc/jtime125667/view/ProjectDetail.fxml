@@ -23,6 +23,9 @@
         <TableView fx:id="taskTable">
             <columns>
                 <TableColumn fx:id="titleColumn" text="Titolo" prefWidth="200"/>
+                
+                <TableColumn fx:id="tagsColumn" text="Tags" prefWidth="150"/>
+                
                 <TableColumn fx:id="estimatedTimeColumn" text="Stima" prefWidth="100"/>
                 <TableColumn fx:id="statusColumn" text="Stato" prefWidth="100"/>
             </columns>
