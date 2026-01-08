@@ -7,8 +7,27 @@ import javafx.stage.*;
 
 import java.io.*;
 
+/**
+ * Classe di utilità per la gestione della visualizzazione e del salvataggio dei report.
+ * <p>
+ *  Questa classe fornisce metodi statici per mostrare un'anteprima del report generato
+ *  in una finestra di dialogo modale e per permettere all'utente di salvarlo su file (es. Markdown).
+ * </p>
+ */
 public class ReportManager {
-    
+
+    /**
+     * Mostra una finestra di dialogo con l'anteprima del report e un pulsante per il salvataggio.
+     * <p>
+     *  Utilizza un {@link Alert} personalizzato inserendo una {@link TextArea} al suo interno
+     *  per visualizzare il contenuto del report. Gestisce inoltre l'evento di salvataggio
+     *  per aprire il FileChooser.
+     * </p>
+     *
+     * @param ownerStage      La finestra "proprietaria" del dialog (per renderlo modale rispetto ad essa).
+     * @param reportText      Il contenuto testuale del report da visualizzare.
+     * @param defaultFileName Il nome file suggerito per l'eventuale salvataggio.
+     */
     public static void showReportDialog(Window ownerStage, String reportText, String defaultFileName) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Report");
@@ -41,6 +60,13 @@ public class ReportManager {
         alert.showAndWait();
     }
 
+    /**
+     * Apre un FileChooser per permettere all'utente di salvare il report su disco.
+     *
+     * @param ownerStage      La finestra padre per il FileChooser.
+     * @param content         Il contenuto da scrivere nel file.
+     * @param defaultFileName Il nome di default suggerito per il file.
+     */
     private static void saveReportToFile(Window ownerStage, String content, String defaultFileName) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Salva Report");

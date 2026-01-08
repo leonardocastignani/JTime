@@ -9,8 +9,28 @@ import javafx.util.*;
 import java.time.Duration;
 import java.util.*;
 
+/**
+ * Classe di utilità per la creazione e gestione delle finestre di dialogo (Dialogs).
+ * <p>
+ *  Questa classe centralizza la logica di interfaccia utente per l'input dei dati,
+ *  fornendo metodi statici per mostrare popup modali.
+ *  Gestisce dialoghi per:
+ *  <ul>
+ *      <li>Creazione di nuovi progetti.</li>
+ *      <li>Creazione e modifica di Task (riutilizzando lo stesso form).</li>
+ *      <li>Conferma di completamento attività con inserimento durata effettiva.</li>
+ *  </ul>
+ * </p>
+ */
 public class DialogManager {
-    
+
+    /**
+     * Mostra una finestra di dialogo per la creazione di un nuovo progetto.
+     * Chiede all'utente di inserire il nome e la descrizione.
+     *
+     * @return Un {@link Optional} contenente una coppia (Nome, Descrizione) se l'utente conferma,
+     * oppure un Optional vuoto se annulla.
+     */
     public static Optional<Pair<String, String>> showNewProjectDialog() {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Nuovo Progetto");
@@ -40,7 +60,17 @@ public class DialogManager {
         return dialog.showAndWait();
     }
 
-    // Metodo unificato per Creazione (passa null) e Modifica (passa il task esistente)
+    /**
+     * Mostra una finestra di dialogo per creare o modificare un Task.
+     * <p>
+     *  Questo metodo è "intelligente": se viene passato un task esistente (`taskToEdit` non null),
+     *  il dialog si apre in modalità "Modifica" pre-popolando i campi. Altrimenti, si apre
+     *  in modalità "Nuovo Task".
+     * </p>
+     *
+     * @param taskToEdit Il task da modificare, oppure {@code null} per crearne uno nuovo.
+     * @return Un {@link Optional} contenente il task creato/aggiornato, o vuoto se annullato.
+     */
     public static Optional<ConcreteTask> showTaskDialog(ConcreteTask taskToEdit) {
         Dialog<ConcreteTask> dialog = new Dialog<>();
         boolean isEdit = taskToEdit != null;
@@ -59,7 +89,6 @@ public class DialogManager {
         TextField tagsField = new TextField();
         tagsField.setPromptText("Es: urgente, java, frontend");
 
-        // Pre-popolamento campi se in modifica
         if (isEdit) {
             titleField.setText(taskToEdit.getTitle());
             descField.setText(taskToEdit.getDescription());
@@ -80,8 +109,7 @@ public class DialogManager {
             if (btn == ButtonType.OK && !titleField.getText().isEmpty()) {
                 long min = 60;
                 try { min = Long.parseLong(durationField.getText()); } catch (Exception e) {}
-                
-                // Se siamo in edit, aggiorniamo l'esistente, altrimenti ne creiamo uno nuovo
+
                 ConcreteTask task = isEdit ? taskToEdit : new ConcreteTask(titleField.getText(), descField.getText(), Duration.ofMinutes(min), datePicker.getValue());
                 
                 if (isEdit) {
@@ -89,7 +117,7 @@ public class DialogManager {
                     task.setDescription(descField.getText());
                     task.setEstimatedDuration(Duration.ofMinutes(min));
                     task.setScheduledDate(datePicker.getValue());
-                    task.getTags().clear(); // Reset tags per reinserirli
+                    task.getTags().clear();
                 }
 
                 String tagsInput = tagsField.getText();
@@ -105,7 +133,15 @@ public class DialogManager {
 
         return dialog.showAndWait();
     }
-    
+
+    /**
+     * Mostra un semplice dialog di input per confermare il completamento di un task.
+     * Chiede all'utente di specificare quanti minuti ha effettivamente impiegato.
+     *
+     * @param taskTitle Il titolo del task che si sta completando.
+     * @param estimatedMin La durata che era stata stimata (usata come valore di default).
+     * @return Un {@link Optional} con i minuti effettivi inseriti dall'utente.
+     */
     public static Optional<Long> showCompleteTaskDialog(String taskTitle, long estimatedMin) {
         TextInputDialog dialog = new TextInputDialog(String.valueOf(estimatedMin));
         dialog.setTitle("Completa Task");

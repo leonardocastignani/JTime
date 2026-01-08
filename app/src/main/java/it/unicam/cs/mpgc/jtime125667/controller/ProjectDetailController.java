@@ -12,6 +12,15 @@ import javafx.scene.control.*;
 
 import java.time.Duration;
 
+/**
+ * Controller per la gestione della vista "Dettaglio Progetto".
+ * <p>
+ *  Questa classe gestisce l'interfaccia utente che mostra le informazioni specifiche di un progetto
+ *  (nome, descrizione, stato) e la lista delle attività (Task) associate.
+ *  Permette di aggiungere, modificare, eliminare e completare task, oltre a cambiare lo stato
+ *  del progetto stesso (completato/in corso).
+ * </p>
+ */
 public class ProjectDetailController {
 
     @FXML private Label projectNameLabel;
@@ -23,77 +32,115 @@ public class ProjectDetailController {
     @FXML private TableColumn<Task, String> statusColumn;
     @FXML private TableColumn<Task, String> tagsColumn;
 
+    /**
+     * Il progetto attualmente visualizzato nella vista.
+     */
     private ConcreteProject currentProject;
+
+    /**
+     * Repository per la persistenza delle modifiche al progetto.
+     */
     private Repository<ConcreteProject, String> repository;
 
+    /**
+     * Costruttore predefinito.
+     * Inizializza il repository con l'implementazione Hibernate di default.
+     * Questo è utile se il controller viene istanziato direttamente da FXML senza un setRepository esplicito.
+     */
     public ProjectDetailController() {
-        // Fallback se non iniettato
         this.repository = new HibernateRepository<>(ConcreteProject.class);
     }
-    
-    // Dependency Injection Setter
+
+    /**
+     * Metodo per la Dependency Injection del Repository.
+     * Permette di passare un repository specifico (es. condiviso o mock per i test).
+     *
+     * @param repository Il repository da utilizzare per il salvataggio dei dati.
+     */
     public void setRepository(Repository<ConcreteProject, String> repository) {
         this.repository = repository;
     }
 
+    /**
+     * Imposta il progetto da visualizzare e aggiorna la vista.
+     *
+     * @param project Il progetto di cui visualizzare i dettagli.
+     */
     public void setProject(ConcreteProject project) {
         this.currentProject = project;
-        updateView();
+        this.updateView();
     }
 
+    /**
+     * Metodo di inizializzazione chiamato automaticamente da JavaFX.
+     * Configura le colonne della TableView per mostrare i dati corretti dei Task.
+     */
     @FXML
     public void initialize() {
-        titleColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTitle()));
-        estimatedTimeColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstimatedDuration().toMinutes() + " min"));
-        statusColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isCompleted() ? "Completato" : "In Corso"));
+        this.titleColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTitle()));
+        this.estimatedTimeColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstimatedDuration().toMinutes() + " min"));
+        this.statusColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isCompleted() ? "Completato" : "In Corso"));
 
-        if (tagsColumn != null) {
-            tagsColumn.setCellValueFactory(c -> new SimpleStringProperty(String.join(", ", c.getValue().getTags())));
+        if (this.tagsColumn != null) {
+            this.tagsColumn.setCellValueFactory(c -> new SimpleStringProperty(String.join(", ", c.getValue().getTags())));
         }
     }
 
+    /**
+     * Aggiorna gli elementi grafici dell'interfaccia con i dati del progetto corrente.
+     * Se il progetto è completato, disabilita la tabella per prevenire modifiche.
+     */
     private void updateView() {
-        if (currentProject != null) {
-            projectNameLabel.setText(currentProject.getName());
-            projectDescriptionLabel.setText(currentProject.getDescription());
-            completedCheckBox.setSelected(currentProject.isCompleted());
-            taskTable.setItems(FXCollections.observableArrayList(currentProject.getTasks()));
-            taskTable.setDisable(currentProject.isCompleted());
+        if (this.currentProject != null) {
+            this.projectNameLabel.setText(this.currentProject.getName());
+            this.projectDescriptionLabel.setText(this.currentProject.getDescription());
+            this.completedCheckBox.setSelected(this.currentProject.isCompleted());
+            this.taskTable.setItems(FXCollections.observableArrayList(this.currentProject.getTasks()));
+            this.taskTable.setDisable(this.currentProject.isCompleted());
         }
     }
 
+    /**
+     * Metodo helper per salvare lo stato corrente del progetto nel database.
+     * Gestisce eventuali errori mostrando un Alert all'utente.
+     */
     private void saveProject() {
         try {
-            repository.save(currentProject);
+            this.repository.save(this.currentProject);
         } catch (RuntimeException e) {
             new Alert(Alert.AlertType.ERROR, "Errore nel salvataggio: " + e.getMessage()).show();
         }
     }
 
+    /**
+     * Gestisce l'azione di aggiunta di un nuovo Task.
+     * Apre una finestra di dialogo e, se confermato, aggiunge il task al progetto.
+     */
     @FXML
     private void handleAddTask() {
-        if (currentProject.isCompleted()) return;
+        if (this.currentProject.isCompleted()) return;
 
         DialogManager.showTaskDialog(null).ifPresent(task -> {
-            currentProject.addTask(task);
-            saveProject();
-            updateView();
+            this.currentProject.addTask(task);
+            this.saveProject();
+            this.updateView();
         });
     }
 
-    // NUOVO: Metodo per gestire la modifica
-    // N.B.: Devi aggiungere un pulsante nel file FXML e collegarlo a questo metodo!
+    /**
+     * Gestisce l'azione di modifica di un Task esistente.
+     * Recupera il task selezionato dalla tabella e apre il dialog pre-popolato.
+     */
     @FXML
     private void handleEditTask() {
-        if (currentProject.isCompleted()) return;
+        if (this.currentProject.isCompleted()) return;
 
-        Task selected = taskTable.getSelectionModel().getSelectedItem();
+        Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null && !selected.isCompleted()) {
-            // Cast a ConcreteTask necessario perché il Dialog gestisce l'implementazione concreta
             if (selected instanceof ConcreteTask) {
                  DialogManager.showTaskDialog((ConcreteTask) selected).ifPresent(updatedTask -> {
-                     saveProject();
-                     taskTable.refresh();
+                     this.saveProject();
+                     this.taskTable.refresh();
                  });
             }
         } else {
@@ -101,27 +148,42 @@ public class ProjectDetailController {
         }
     }
 
+    /**
+     * Gestisce il completamento di un task.
+     * Chiede all'utente di inserire la durata effettiva prima di marcare il task come completato.
+     */
     @FXML
     private void handleCompleteTask() {
-        Task selected = taskTable.getSelectionModel().getSelectedItem();
+        Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null && !selected.isCompleted()) {
             DialogManager.showCompleteTaskDialog(selected.getTitle(), selected.getEstimatedDuration().toMinutes())
                 .ifPresent(minutes -> {
                     selected.complete(Duration.ofMinutes(minutes));
-                    saveProject();
-                    taskTable.refresh();
+                    this.saveProject();
+                    this.taskTable.refresh();
                 });
         }
     }
 
+    /**
+     * Genera e visualizza il report testuale del progetto corrente
+     * utilizzando il pattern Visitor.
+     */
     @FXML
     private void handleReport() {
-        if (currentProject == null) return;
+        if (this.currentProject == null) return;
         TextReportVisitor visitor = new TextReportVisitor();
-        currentProject.accept(visitor);
-        ReportManager.showReportDialog(projectNameLabel.getScene().getWindow(), visitor.getReport(), "Report_" + currentProject.getName());
+        this.currentProject.accept(visitor);
+        ReportManager.showReportDialog(this.projectNameLabel.getScene().getWindow(), visitor.getReport(), "Report_" + this.currentProject.getName());
     }
 
+    /**
+     * Gestisce il cambio di stato del progetto (Attivo <-> Completato).
+     * <p>
+     *  Implementa una regola di business fondamentale: un progetto NON può essere chiuso
+     *  se ci sono ancora attività pendenti (non completate).
+     * </p>
+     */
     @FXML
     private void handleToggleComplete() {
         if (this.currentProject == null) return;
@@ -140,10 +202,13 @@ public class ProjectDetailController {
             }
             this.currentProject.setCompleted(true);
         }
-        saveProject();
+        this.saveProject();
         this.updateView();
     }
 
+    /**
+     * Elimina il task selezionato dal progetto.
+     */
     @FXML
     private void handleDeleteTask() {
         if (this.currentProject.isCompleted()) return; 
@@ -151,14 +216,16 @@ public class ProjectDetailController {
         Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             this.currentProject.removeTask(selected);
-            saveProject();
+            this.saveProject();
             this.updateView();
         }
     }
 
+    /**
+     * Torna alla vista della lista progetti.
+     */
     @FXML
     private void handleBack() {
-        // Qui dovremmo passare il repository indietro se necessario, ma per semplicità ricarichiamo la lista
-        SceneManager.changeScene(projectNameLabel, "/it/unicam/cs/mpgc/jtime125667/view/ProjectList.fxml");
+        SceneManager.changeScene(this.projectNameLabel, "/it/unicam/cs/mpgc/jtime125667/view/ProjectList.fxml");
     }
 }

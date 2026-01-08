@@ -17,6 +17,14 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.*;
 
+/**
+ * Controller per la gestione della vista "Agenda Giornaliera".
+ * <p>
+ *  Questa classe si occupa di visualizzare tutte le attività (Task) pianificate per una specifica data.
+ *  Permette di filtrare i task per giorno, calcolare l'impegno totale (in ore e minuti)
+ *  e generare un report specifico per la giornata selezionata.
+ * </p>
+ */
 public class AgendaController {
 
     @FXML private DatePicker agendaDatePicker;
@@ -27,12 +35,26 @@ public class AgendaController {
     @FXML private TableColumn<AgendaItem, String> statusColumn;
     @FXML private Label totalEffortLabel;
 
+    /**
+     * Repository per l'accesso ai dati dei progetti (e dei relativi task).
+     */
     private final Repository<ConcreteProject, String> repository;
 
+    /**
+     * Costruttore predefinito.
+     * Inizializza il repository utilizzando l'implementazione basata su Hibernate.
+     */
     public AgendaController() {
         this.repository = new HibernateRepository<>(ConcreteProject.class);
     }
 
+    /**
+     * Metodo di inizializzazione chiamato automaticamente da JavaFX dopo il caricamento dell'FXML.
+     * <p>
+     *  Configura il DatePicker sulla data odierna, imposta le factory per le colonne della tabella
+     *  e carica i dati iniziali per oggi.
+     * </p>
+     */
     @FXML
     public void initialize() {
         this.agendaDatePicker.setValue(LocalDate.now());
@@ -45,11 +67,25 @@ public class AgendaController {
         this.loadTasksForDate(LocalDate.now());
     }
 
+    /**
+     * Gestisce l'evento di cambio data nel DatePicker.
+     * Ricarica la lista dei task in base alla nuova data selezionata.
+     */
     @FXML
     private void handleDateChange() {
         this.loadTasksForDate(this.agendaDatePicker.getValue());
     }
 
+    /**
+     * Carica e visualizza i task pianificati per la data specificata.
+     * <p>
+     *  Questo metodo recupera tutti i progetti, filtra i task che hanno la data
+     *  pianificata (`scheduledDate`) coincidente con quella richiesta e calcola
+     *  il tempo totale stimato.
+     * </p>
+     *
+     * @param date La data per la quale visualizzare l'agenda.
+     */
     private void loadTasksForDate(LocalDate date) {
         if (date == null) return;
 
@@ -69,15 +105,19 @@ public class AgendaController {
         
         long hours = totalMinutes / 60;
         long min = totalMinutes % 60;
-        totalEffortLabel.setText("Impegno Totale: " + hours + "h " + min + "m");
+        this.totalEffortLabel.setText("Impegno Totale: " + hours + "h " + min + "m");
 
         if (totalMinutes > 480) {
-            totalEffortLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+            this.totalEffortLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
         } else {
-            totalEffortLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold;");
+            this.totalEffortLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold;");
         }
     }
 
+    /**
+     * Gestisce la navigazione per tornare alla schermata principale (Lista Progetti).
+     * Carica il file FXML `ProjectList.fxml` e sostituisce la scena corrente.
+     */
     @FXML
     private void handleBack() {
         try {
@@ -90,6 +130,10 @@ public class AgendaController {
         }
     }
 
+    /**
+     * Classe interna di supporto (Wrapper) per visualizzare i dati nella TableView.
+     * Serve per associare facilmente un Task al nome del suo Progetto di appartenenza.
+     */
     private static class AgendaItem {
         String projectName;
         Task task;
@@ -100,9 +144,16 @@ public class AgendaController {
         }
     }
 
+    /**
+     * Genera un report delle attività per la sola giornata selezionata.
+     * <p>
+     *  Utilizza il pattern Visitor (`DateRangeReportVisitor`) impostando data di inizio
+     *  e fine coincidenti con la data selezionata nel DatePicker.
+     * </p>
+     */
     @FXML
     private void handleDailyReport() {
-        LocalDate date = agendaDatePicker.getValue();
+        LocalDate date = this.agendaDatePicker.getValue();
         if (date == null) return;
 
         DateRangeReportVisitor visitor = new DateRangeReportVisitor(date, date);
@@ -113,7 +164,7 @@ public class AgendaController {
         }
 
         ReportManager.showReportDialog(
-            agendaDatePicker.getScene().getWindow(), 
+            this.agendaDatePicker.getScene().getWindow(), 
             visitor.getReport(), 
             "Report_Agenda_" + date.toString()
         );
