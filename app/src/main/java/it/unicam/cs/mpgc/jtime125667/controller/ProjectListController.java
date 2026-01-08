@@ -74,7 +74,10 @@ public class ProjectListController {
         ConcreteProject selected = projectListView.getSelectionModel().getSelectedItem();
         if (selected != null) {
             SceneManager.changeScene(projectListView, "/it/unicam/cs/mpgc/jtime125667/view/ProjectDetail.fxml", 
-                (ProjectDetailController controller) -> controller.setProject(selected)
+                (ProjectDetailController controller) -> {
+                    controller.setRepository(this.repository); // INIEZIONE DEL REPOSITORY
+                    controller.setProject(selected);
+                }
             );
         }
     }

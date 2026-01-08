@@ -43,25 +43,28 @@ public class ConcreteTask implements Task {
     }
 
     @Override
-    public String getId() { return id; }
+    public String getId() { return this.id; }
 
     @Override
-    public String getTitle() { return title; }
+    public String getTitle() { return this.title; }
+    public void setTitle(String title) { this.title = title; }
 
     @Override
-    public String getDescription() { return description; }
+    public String getDescription() { return this.description; }
+    public void setDescription(String description) { this.description = description; }
 
     @Override
-    public Duration getEstimatedDuration() { return estimatedDuration; }
+    public Duration getEstimatedDuration() { return this.estimatedDuration; }
+    public void setEstimatedDuration(Duration estimatedDuration) { this.estimatedDuration = estimatedDuration; }
 
     @Override
-    public Duration getActualDuration() { return actualDuration; }
+    public Duration getActualDuration() { return this.actualDuration; }
 
     @Override
-    public LocalDate getScheduledDate() { return scheduledDate; }
+    public LocalDate getScheduledDate() { return this.scheduledDate; }
 
     @Override
-    public List<String> getTags() { return tags; }
+    public List<String> getTags() { return this.tags; }
 
     @Override
     public void setScheduledDate(LocalDate date) { this.scheduledDate = date; }
@@ -70,7 +73,7 @@ public class ConcreteTask implements Task {
     public void addTag(String tag) { this.tags.add(tag); }
 
     @Override
-    public boolean isCompleted() { return completed; }
+    public boolean isCompleted() { return this.completed; }
 
     @Override
     public void complete(Duration actualDuration) {

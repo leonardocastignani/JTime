@@ -37,6 +37,7 @@
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
             <Button text="📄 Report" onAction="#handleReport"/>
             <Button text="Aggiungi Task" onAction="#handleAddTask"/>
+            <Button text="Modifica" onAction="#handleEditTask" />
             <Button text="Completa Task" onAction="#handleCompleteTask"/>
             <Button text="Elimina Task" onAction="#handleDeleteTask" style="-fx-text-fill: red;"/>
         </HBox>

@@ -40,10 +40,13 @@ public class DialogManager {
         return dialog.showAndWait();
     }
 
-    public static Optional<ConcreteTask> showNewTaskDialog() {
+    // Metodo unificato per Creazione (passa null) e Modifica (passa il task esistente)
+    public static Optional<ConcreteTask> showTaskDialog(ConcreteTask taskToEdit) {
         Dialog<ConcreteTask> dialog = new Dialog<>();
-        dialog.setTitle("Nuovo Task");
-        dialog.setHeaderText("Dettagli attività");
+        boolean isEdit = taskToEdit != null;
+        
+        dialog.setTitle(isEdit ? "Modifica Task" : "Nuovo Task");
+        dialog.setHeaderText(isEdit ? "Modifica dettagli attività" : "Dettagli nuova attività");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
@@ -55,6 +58,15 @@ public class DialogManager {
         DatePicker datePicker = new DatePicker();
         TextField tagsField = new TextField();
         tagsField.setPromptText("Es: urgente, java, frontend");
+
+        // Pre-popolamento campi se in modifica
+        if (isEdit) {
+            titleField.setText(taskToEdit.getTitle());
+            descField.setText(taskToEdit.getDescription());
+            durationField.setText(String.valueOf(taskToEdit.getEstimatedDuration().toMinutes()));
+            datePicker.setValue(taskToEdit.getScheduledDate());
+            tagsField.setText(String.join(", ", taskToEdit.getTags()));
+        }
 
         grid.add(new Label("Titolo:"), 0, 0); grid.add(titleField, 1, 0);
         grid.add(new Label("Descrizione:"), 0, 1); grid.add(descField, 1, 1);
@@ -69,15 +81,24 @@ public class DialogManager {
                 long min = 60;
                 try { min = Long.parseLong(durationField.getText()); } catch (Exception e) {}
                 
-                ConcreteTask newTask = new ConcreteTask(titleField.getText(), descField.getText(), Duration.ofMinutes(min), datePicker.getValue());
+                // Se siamo in edit, aggiorniamo l'esistente, altrimenti ne creiamo uno nuovo
+                ConcreteTask task = isEdit ? taskToEdit : new ConcreteTask(titleField.getText(), descField.getText(), Duration.ofMinutes(min), datePicker.getValue());
+                
+                if (isEdit) {
+                    task.setTitle(titleField.getText());
+                    task.setDescription(descField.getText());
+                    task.setEstimatedDuration(Duration.ofMinutes(min));
+                    task.setScheduledDate(datePicker.getValue());
+                    task.getTags().clear(); // Reset tags per reinserirli
+                }
 
                 String tagsInput = tagsField.getText();
                 if (!tagsInput.isEmpty()) {
                     for (String tag : tagsInput.split(",")) {
-                        newTask.getTags().add(tag.trim());
+                        task.getTags().add(tag.trim());
                     }
                 }
-                return newTask;
+                return task;
             }
             return null;
         });

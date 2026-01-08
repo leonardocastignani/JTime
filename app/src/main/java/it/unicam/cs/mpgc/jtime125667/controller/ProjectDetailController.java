@@ -9,6 +9,7 @@ import javafx.beans.property.*;
 import javafx.collections.*;
 import javafx.fxml.*;
 import javafx.scene.control.*;
+
 import java.time.Duration;
 
 public class ProjectDetailController {
@@ -23,11 +24,16 @@ public class ProjectDetailController {
     @FXML private TableColumn<Task, String> tagsColumn;
 
     private ConcreteProject currentProject;
-
-    private final Repository<ConcreteProject, String> repository;
+    private Repository<ConcreteProject, String> repository;
 
     public ProjectDetailController() {
+        // Fallback se non iniettato
         this.repository = new HibernateRepository<>(ConcreteProject.class);
+    }
+    
+    // Dependency Injection Setter
+    public void setRepository(Repository<ConcreteProject, String> repository) {
+        this.repository = repository;
     }
 
     public void setProject(ConcreteProject project) {
@@ -50,11 +56,17 @@ public class ProjectDetailController {
         if (currentProject != null) {
             projectNameLabel.setText(currentProject.getName());
             projectDescriptionLabel.setText(currentProject.getDescription());
-
             completedCheckBox.setSelected(currentProject.isCompleted());
-            
             taskTable.setItems(FXCollections.observableArrayList(currentProject.getTasks()));
             taskTable.setDisable(currentProject.isCompleted());
+        }
+    }
+
+    private void saveProject() {
+        try {
+            repository.save(currentProject);
+        } catch (RuntimeException e) {
+            new Alert(Alert.AlertType.ERROR, "Errore nel salvataggio: " + e.getMessage()).show();
         }
     }
 
@@ -62,11 +74,31 @@ public class ProjectDetailController {
     private void handleAddTask() {
         if (currentProject.isCompleted()) return;
 
-        DialogManager.showNewTaskDialog().ifPresent(task -> {
+        DialogManager.showTaskDialog(null).ifPresent(task -> {
             currentProject.addTask(task);
-            repository.save(currentProject);
+            saveProject();
             updateView();
         });
+    }
+
+    // NUOVO: Metodo per gestire la modifica
+    // N.B.: Devi aggiungere un pulsante nel file FXML e collegarlo a questo metodo!
+    @FXML
+    private void handleEditTask() {
+        if (currentProject.isCompleted()) return;
+
+        Task selected = taskTable.getSelectionModel().getSelectedItem();
+        if (selected != null && !selected.isCompleted()) {
+            // Cast a ConcreteTask necessario perché il Dialog gestisce l'implementazione concreta
+            if (selected instanceof ConcreteTask) {
+                 DialogManager.showTaskDialog((ConcreteTask) selected).ifPresent(updatedTask -> {
+                     saveProject();
+                     taskTable.refresh();
+                 });
+            }
+        } else {
+             new Alert(Alert.AlertType.WARNING, "Seleziona un task non completato per modificarlo.").show();
+        }
     }
 
     @FXML
@@ -76,7 +108,7 @@ public class ProjectDetailController {
             DialogManager.showCompleteTaskDialog(selected.getTitle(), selected.getEstimatedDuration().toMinutes())
                 .ifPresent(minutes -> {
                     selected.complete(Duration.ofMinutes(minutes));
-                    repository.save(currentProject);
+                    saveProject();
                     taskTable.refresh();
                 });
         }
@@ -103,14 +135,12 @@ public class ProjectDetailController {
                 alert.setHeaderText("Attività pendenti");
                 alert.setContentText("Il progetto ha attività non completate. Completale prima di chiudere il progetto.");
                 alert.showAndWait();
-                
                 this.completedCheckBox.setSelected(false);
                 return;
             }
             this.currentProject.setCompleted(true);
         }
-        
-        this.repository.save(this.currentProject);
+        saveProject();
         this.updateView();
     }
 
@@ -121,13 +151,14 @@ public class ProjectDetailController {
         Task selected = this.taskTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             this.currentProject.removeTask(selected);
-            this.repository.save(this.currentProject);
+            saveProject();
             this.updateView();
         }
     }
 
     @FXML
     private void handleBack() {
+        // Qui dovremmo passare il repository indietro se necessario, ma per semplicità ricarichiamo la lista
         SceneManager.changeScene(projectNameLabel, "/it/unicam/cs/mpgc/jtime125667/view/ProjectList.fxml");
     }
 }

@@ -3,10 +3,12 @@ package it.unicam.cs.mpgc.jtime125667.persistence;
 import org.hibernate.*;
 
 import java.util.*;
+import java.util.logging.*;
 
 public class HibernateRepository<T> implements Repository<T, String> {
 
     private final Class<T> entityClass;
+    private static final Logger logger = Logger.getLogger(HibernateRepository.class.getName());
 
     public HibernateRepository(Class<T> entityClass) {
         this.entityClass = entityClass;
@@ -17,7 +19,7 @@ public class HibernateRepository<T> implements Repository<T, String> {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(entityClass, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Errore durante la ricerca per ID: " + id, e);
             return null;
         }
     }
@@ -27,7 +29,7 @@ public class HibernateRepository<T> implements Repository<T, String> {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery("from " + entityClass.getName(), entityClass).list();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Errore durante il recupero di tutti gli elementi", e);
             return List.of();
         }
     }
@@ -41,7 +43,8 @@ public class HibernateRepository<T> implements Repository<T, String> {
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Errore durante il salvataggio dell'entità", e);
+            throw new RuntimeException("Salvataggio fallito", e); // Rilancia per gestire nella UI
         }
     }
 
@@ -54,7 +57,8 @@ public class HibernateRepository<T> implements Repository<T, String> {
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Errore durante l'eliminazione dell'entità", e);
+            throw new RuntimeException("Eliminazione fallita", e);
         }
     }
 }
