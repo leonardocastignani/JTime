@@ -8,11 +8,8 @@ import it.unicam.cs.mpgc.jtime125667.util.*;
 import javafx.beans.property.*;
 import javafx.collections.*;
 import javafx.fxml.*;
-import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.stage.*;
 
-import java.io.*;
 import java.time.*;
 import java.util.*;
 import java.util.stream.*;
@@ -32,7 +29,7 @@ public class AgendaController {
     @FXML private TableColumn<AgendaItem, String> projectColumn;
     @FXML private TableColumn<AgendaItem, String> taskColumn;
     @FXML private TableColumn<AgendaItem, String> timeColumn;
-    @FXML private TableColumn<AgendaItem, String> statusColumn;
+    @FXML private TableColumn<AgendaItem, Task> statusColumn;
     @FXML private Label totalEffortLabel;
 
     /**
@@ -62,7 +59,29 @@ public class AgendaController {
         this.projectColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().projectName));
         this.taskColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().task.getTitle()));
         this.timeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().task.getEstimatedDuration().toMinutes() + " min"));
-        this.statusColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().task.isCompleted() ? "Fatto" : "Da fare"));
+        this.statusColumn.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue().task));
+
+        this.statusColumn.setCellFactory(column -> new TableCell<AgendaItem, Task>() {
+            @Override
+            protected void updateItem(Task item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    boolean isDone = item.isCompleted();
+                    Label badge = new Label(isDone ? "COMPLETATO" : "DA FARE");
+                    if (isDone) {
+                         badge.setStyle("-fx-background-color: #d1f2eb; -fx-text-fill: #117864; -fx-background-radius: 4; -fx-padding: 3 8; -fx-font-weight: bold; -fx-font-size: 10px;");
+                    } else {
+                         badge.setStyle("-fx-background-color: #fcf3cf; -fx-text-fill: #b7950b; -fx-background-radius: 4; -fx-padding: 3 8; -fx-font-weight: bold; -fx-font-size: 10px;");
+                    }
+                    setGraphic(badge);
+                    setAlignment(javafx.geometry.Pos.CENTER);
+                    setText(null);
+                }
+            }
+        });
 
         this.loadTasksForDate(LocalDate.now());
     }
@@ -116,32 +135,10 @@ public class AgendaController {
 
     /**
      * Gestisce la navigazione per tornare alla schermata principale (Lista Progetti).
-     * Carica il file FXML `ProjectList.fxml` e sostituisce la scena corrente.
      */
     @FXML
     private void handleBack() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unicam/cs/mpgc/jtime125667/view/ProjectList.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) this.agendaDatePicker.getScene().getWindow();
-            stage.setScene(new Scene(root, 800, 600));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Classe interna di supporto (Wrapper) per visualizzare i dati nella TableView.
-     * Serve per associare facilmente un Task al nome del suo Progetto di appartenenza.
-     */
-    private static class AgendaItem {
-        String projectName;
-        Task task;
-
-        public AgendaItem(String projectName, Task task) {
-            this.projectName = projectName;
-            this.task = task;
-        }
+        SceneManager.changeScene(this.agendaDatePicker, "/it/unicam/cs/mpgc/jtime125667/view/ProjectList.fxml");
     }
 
     /**
@@ -168,5 +165,18 @@ public class AgendaController {
             visitor.getReport(), 
             "Report_Agenda_" + date.toString()
         );
+    }
+
+    public static class AgendaItem {
+        String projectName;
+        Task task;
+
+        public AgendaItem(String projectName, Task task) {
+            this.projectName = projectName;
+            this.task = task;
+        }
+        
+        // Getter necessari per eventuali PropertyValueFactory, anche se qui usiamo lambda
+        public Task getTask() { return task; }
     }
 }
