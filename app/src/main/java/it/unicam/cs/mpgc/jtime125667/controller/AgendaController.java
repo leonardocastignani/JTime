@@ -16,6 +16,7 @@ import java.util.stream.*;
 
 /**
  * Controller per la gestione della vista "Agenda Giornaliera".
+ * 
  * <p>
  *  Questa classe si occupa di visualizzare tutte le attività (Task) pianificate per una specifica data.
  *  Permette di filtrare i task per giorno, calcolare l'impegno totale (in ore e minuti)
@@ -48,8 +49,13 @@ public class AgendaController {
     /**
      * Metodo di inizializzazione chiamato automaticamente da JavaFX dopo il caricamento dell'FXML.
      * <p>
-     *  Configura il DatePicker sulla data odierna, imposta le factory per le colonne della tabella
-     *  e carica i dati iniziali per oggi.
+     *  Configura:
+     *      <ol>
+     *          <li>La data iniziale (oggi).</li>
+     *          <li>Il binding dei dati tra le proprietà degli oggetti {@link AgendaItem} e le colonne della tabella.</li>
+     *          <li>Il rendering personalizzato (CellFactory) per la colonna di stato (badge colorati).</li>
+     *          <li>Il caricamento iniziale dei dati.</li>
+     *      </ol>
      * </p>
      */
     @FXML
@@ -167,16 +173,30 @@ public class AgendaController {
         );
     }
 
+    /**
+     * Classe interna (DTO - Data Transfer Object) utilizzata esclusivamente
+     * per popolare la {@link TableView}.
+     * 
+     * <p>
+     *  Serve ad associare in modo piatto un Task al nome del suo Progetto contenitore,
+     *  facilitando la visualizzazione tabellare.
+     * </p>
+     */
     public static class AgendaItem {
         String projectName;
         Task task;
 
+        /**
+         * Crea un nuovo elemento per l'agenda.
+         * 
+         * @param projectName Nome del progetto di appartenenza.
+         * @param task Il task da visualizzare.
+         */
         public AgendaItem(String projectName, Task task) {
             this.projectName = projectName;
             this.task = task;
         }
-        
-        // Getter necessari per eventuali PropertyValueFactory, anche se qui usiamo lambda
+
         public Task getTask() { return task; }
     }
 }

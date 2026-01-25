@@ -5,8 +5,28 @@ import it.unicam.cs.mpgc.jtime125667.model.*;
 import javafx.geometry.*;
 import javafx.scene.control.*;
 
+/**
+ * Cella personalizzata per la visualizzazione dello stato di un {@link Task} all'interno di una {@link TableView}.
+ * 
+ * <p>
+ *  Questa classe estende {@link TableCell} e sostituisce la rappresentazione testuale standard
+ *  con un "badge" colorato (un'etichetta con sfondo arrotondato).
+ *  Serve a distinguere visivamente a colpo d'occhio i task completati da quelli ancora in corso.
+ * </p>
+ */
 public class TaskStatusCell extends TableCell<Task, String> {
 
+    /**
+     * Aggiorna il contenuto grafico della cella in base allo stato del task corrente.
+     * 
+     * <p>
+     *  Questo metodo viene invocato dal framework JavaFX ogni volta che la cella deve essere renderizzata.
+     *  Recupera l'oggetto {@link Task} associato all'intera riga per determinare lo stile da applicare.
+     * </p>
+     *
+     * @param item  Il valore associato alla cella (spesso ignorato in favore dell'oggetto riga intera).
+     * @param empty Flag che indica se la cella è vuota (non associata a dati).
+     */
     @Override
     protected void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);

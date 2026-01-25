@@ -11,10 +11,33 @@ import javafx.util.*;
 import java.time.Duration;
 import java.util.*;
 
+/**
+ * Classe di utilità per la gestione delle finestre di dialogo (Dialogs) dell'applicazione.
+ * 
+ * <p>
+ *  Questa classe fornisce metodi statici per visualizzare popup modali che permettono all'utente di:
+ *  <ul>
+ *      <li>Creare nuovi progetti.</li>
+ *      <li>Creare o modificare Task esistenti (inclusa la gestione di date e tag).</li>
+ *      <li>Confermare il completamento di un task inserendo il tempo effettivo.</li>
+ *  </ul>
+ *  Tutte le finestre condividono uno stile visivo coerente definito in {@code DIALOG_STYLE}.
+ * </p>
+ */
 public class DialogManager {
 
     private static final String DIALOG_STYLE = "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px;";
 
+    /**
+     * Mostra una finestra di dialogo per la creazione di un nuovo progetto.
+     * 
+     * <p>
+     *  Richiede all'utente di inserire un nome e una descrizione opzionale.
+     * </p>
+     *
+     * @return Un {@link Optional} contenente una {@link Pair} con (Nome, Descrizione) se l'utente conferma,
+     * altrimenti un Optional vuoto.
+     */
     public static Optional<Pair<String, String>> showNewProjectDialog() {
         Dialog<Pair<String, String>> dialog = new Dialog<Pair<String, String>>();
         dialog.setTitle("Nuovo Progetto");
@@ -61,6 +84,18 @@ public class DialogManager {
         return dialog.showAndWait();
     }
 
+    /**
+     * Mostra una finestra di dialogo per creare un nuovo Task o modificarne uno esistente.
+     * 
+     * <p>
+     *  Se {@code taskToEdit} è diverso da null, i campi verranno precompilati con i dati esistenti.
+     *  Gestisce anche il parsing della durata e la suddivisione dei tag tramite virgola.
+     * </p>
+     *
+     * @param taskToEdit Il task da modificare, oppure {@code null} se si sta creando un nuovo task.
+     * @return Un {@link Optional} contenente l'oggetto {@link ConcreteTask} aggiornato o creato,
+     * altrimenti un Optional vuoto se annullato.
+     */
     public static Optional<ConcreteTask> showTaskDialog(ConcreteTask taskToEdit) {
         Dialog<ConcreteTask> dialog = new Dialog<ConcreteTask>();
         boolean isEdit = taskToEdit != null;
@@ -150,6 +185,18 @@ public class DialogManager {
         return dialog.showAndWait();
     }
 
+    /**
+     * Mostra una finestra di dialogo per confermare il completamento di un task.
+     * 
+     * <p>
+     *  Chiede all'utente di inserire il tempo effettivamente impiegato per completare l'attività.
+     *  Il campo viene precompilato con la stima iniziale.
+     * </p>
+     *
+     * @param taskTitle Il titolo del task che si sta completando.
+     * @param estimatedMin La durata stimata originale (in minuti).
+     * @return Un {@link Optional} contenente i minuti effettivi (Long) se confermato.
+     */
     public static Optional<Long> showCompleteTaskDialog(String taskTitle, long estimatedMin) {
         Dialog<Long> dialog = new Dialog<Long>();
         dialog.setTitle("Completa Task");

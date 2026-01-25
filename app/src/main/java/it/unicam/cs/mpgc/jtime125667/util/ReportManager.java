@@ -9,10 +9,35 @@ import javafx.stage.*;
 
 import java.io.*;
 
+/**
+ * Classe di utilità per la gestione della visualizzazione e del salvataggio dei report.
+ * 
+ * <p>
+ *  Questa classe fornisce metodi statici per presentare all'utente un'anteprima dei report generati
+ *  (in formato testo/markdown) e permetterne il salvataggio su disco tramite finestre di dialogo di sistema.
+ * </p>
+ */
 public class ReportManager {
 
     private static final String REPORT_DIALOG_STYLE = "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px;";
 
+    /**
+     * Mostra una finestra di dialogo modale contenente l'anteprima del report.
+     * 
+     * <p>
+     *  La finestra include:
+     *  <ul>
+     *      <li>Un'area di testo scrollabile per visualizzare il contenuto.</li>
+     *      <li>Un pulsante "Salva su File" per esportare il report.</li>
+     *      <li>Un pulsante "Chiudi".</li>
+     *  </ul>
+     *  L'area di testo utilizza un font monospaziato per garantire il corretto allineamento di tabelle e elenchi.
+     * </p>
+     *
+     * @param ownerStage      La finestra (Stage) proprietaria, per rendere il dialog modale rispetto ad essa.
+     * @param reportText      Il contenuto testuale del report da visualizzare.
+     * @param defaultFileName Il nome file suggerito in fase di salvataggio.
+     */
     public static void showReportDialog(Window ownerStage, String reportText, String defaultFileName) {
         Dialog<ButtonType> dialog = new Dialog<ButtonType>();
         dialog.setTitle("Report Generato");
@@ -61,6 +86,19 @@ public class ReportManager {
         dialog.showAndWait();
     }
 
+    /**
+     * Metodo helper privato che gestisce il salvataggio fisico del file su disco.
+     * 
+     * <p>
+     *  Apre un {@link FileChooser} di sistema permettendo all'utente di scegliere
+     *  il percorso di destinazione. Supporta estensioni .md (Markdown) e .txt (Testo semplice).
+     * </p>
+     *
+     * @param ownerStage      La finestra proprietaria per il FileChooser.
+     * @param content         Il contenuto da scrivere nel file.
+     * @param defaultFileName Il nome file suggerito (viene sanitizzato per rimuovere caratteri illegali).
+     * @return {@code true} se il file è stato salvato correttamente, {@code false} se l'utente ha annullato o si è verificato un errore.
+     */
     private static boolean saveReportToFile(Window ownerStage, String content, String defaultFileName) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Salva Report");
