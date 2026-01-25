@@ -78,12 +78,22 @@ public class ProjectDetailController {
     @FXML
     public void initialize() {
         this.titleColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTitle()));
-        this.estimatedTimeColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstimatedDuration().toMinutes() + " min"));
-        this.statusColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isCompleted() ? "Completato" : "In Corso"));
+        
+        this.estimatedTimeColumn.setCellValueFactory(c -> new SimpleStringProperty(
+            c.getValue().getEstimatedDuration().toMinutes() + " min"
+        ));
+
+        this.statusColumn.setCellValueFactory(c -> new SimpleStringProperty(
+            c.getValue().isCompleted() ? "Completato" : "In Corso"
+        ));
+
+        this.statusColumn.setCellFactory(param -> new TaskStatusCell());
 
         if (this.tagsColumn != null) {
             this.tagsColumn.setCellValueFactory(c -> new SimpleStringProperty(String.join(", ", c.getValue().getTags())));
         }
+
+        this.taskTable.setPlaceholder(new Label("Nessuna attività presente. Aggiungine una!"));
     }
 
     /**
