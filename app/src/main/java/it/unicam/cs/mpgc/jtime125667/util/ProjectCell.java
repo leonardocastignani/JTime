@@ -82,6 +82,12 @@ public class ProjectCell extends ListCell<ConcreteProject> {
 
             setText(null);
             setGraphic(root);
+
+            if (isSelected()) {
+                setStyle("-fx-background-color: #e8f0fe; -fx-border-color: #d2e3fc; -fx-border-width: 0 0 1 0;"); 
+            } else {
+                setStyle("-fx-background-color: transparent; -fx-border-color: #eeeeee; -fx-border-width: 0 0 1 0;");
+            }
         }
     }
 }
