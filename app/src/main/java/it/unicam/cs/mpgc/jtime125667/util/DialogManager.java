@@ -2,111 +2,127 @@ package it.unicam.cs.mpgc.jtime125667.util;
 
 import it.unicam.cs.mpgc.jtime125667.model.*;
 
+import javafx.geometry.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.text.*;
 import javafx.util.*;
 
 import java.time.Duration;
 import java.util.*;
 
-/**
- * Classe di utilità per la creazione e gestione delle finestre di dialogo (Dialogs).
- * <p>
- *  Questa classe centralizza la logica di interfaccia utente per l'input dei dati,
- *  fornendo metodi statici per mostrare popup modali.
- *  Gestisce dialoghi per:
- *  <ul>
- *      <li>Creazione di nuovi progetti.</li>
- *      <li>Creazione e modifica di Task (riutilizzando lo stesso form).</li>
- *      <li>Conferma di completamento attività con inserimento durata effettiva.</li>
- *  </ul>
- * </p>
- */
 public class DialogManager {
 
-    /**
-     * Mostra una finestra di dialogo per la creazione di un nuovo progetto.
-     * Chiede all'utente di inserire il nome e la descrizione.
-     *
-     * @return Un {@link Optional} contenente una coppia (Nome, Descrizione) se l'utente conferma,
-     * oppure un Optional vuoto se annulla.
-     */
+    private static final String DIALOG_STYLE = "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px;";
+
     public static Optional<Pair<String, String>> showNewProjectDialog() {
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        Dialog<Pair<String, String>> dialog = new Dialog<Pair<String, String>>();
         dialog.setTitle("Nuovo Progetto");
-        dialog.setHeaderText("Inserisci i dettagli");
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setHeaderText(null); 
+        dialog.getDialogPane().setStyle(DIALOG_STYLE);
+
+        ButtonType loginButtonType = new ButtonType("Crea", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10);
-        
-        TextField nameField = new TextField();
-        nameField.setPromptText("Nome");
-        TextArea descField = new TextArea();
-        descField.setPromptText("Descrizione");
-        descField.setPrefRowCount(3);
+        grid.setHgap(15); grid.setVgap(15);
+        grid.setPadding(new Insets(20, 20, 10, 20));
 
-        grid.add(new Label("Nome:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Descrizione:"), 0, 1);
-        grid.add(descField, 1, 1);
+        Label headerLabel = new Label("Dettagli Progetto");
+        headerLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        grid.add(headerLabel, 0, 0, 2, 1);
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Es. Sviluppo App Mobile");
+        nameField.setPrefWidth(300);
+
+        TextArea descField = new TextArea();
+        descField.setPromptText("Descrivi brevemente lo scopo del progetto...");
+        descField.setPrefRowCount(4);
+        descField.setWrapText(true);
+
+        grid.add(new Label("Nome:"), 0, 1);
+        grid.add(nameField, 1, 1);
+        grid.add(new Label("Descrizione:"), 0, 2);
+        grid.add(descField, 1, 2);
+
+        javafx.application.Platform.runLater(nameField::requestFocus);
+
         dialog.getDialogPane().setContent(grid);
 
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) return new Pair<>(nameField.getText(), descField.getText());
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                return new Pair<String, String>(nameField.getText(), descField.getText());
+            }
             return null;
         });
 
         return dialog.showAndWait();
     }
 
-    /**
-     * Mostra una finestra di dialogo per creare o modificare un Task.
-     * <p>
-     *  Questo metodo è "intelligente": se viene passato un task esistente (`taskToEdit` non null),
-     *  il dialog si apre in modalità "Modifica" pre-popolando i campi. Altrimenti, si apre
-     *  in modalità "Nuovo Task".
-     * </p>
-     *
-     * @param taskToEdit Il task da modificare, oppure {@code null} per crearne uno nuovo.
-     * @return Un {@link Optional} contenente il task creato/aggiornato, o vuoto se annullato.
-     */
     public static Optional<ConcreteTask> showTaskDialog(ConcreteTask taskToEdit) {
-        Dialog<ConcreteTask> dialog = new Dialog<>();
+        Dialog<ConcreteTask> dialog = new Dialog<ConcreteTask>();
         boolean isEdit = taskToEdit != null;
         
-        dialog.setTitle(isEdit ? "Modifica Task" : "Nuovo Task");
-        dialog.setHeaderText(isEdit ? "Modifica dettagli attività" : "Dettagli nuova attività");
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.setTitle(isEdit ? "Modifica Attività" : "Nuova Attività");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setStyle(DIALOG_STYLE);
+
+        ButtonType confirmButtonType = new ButtonType(isEdit ? "Salva Modifiche" : "Aggiungi", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10);
+        grid.setHgap(15); grid.setVgap(15);
+        grid.setPadding(new Insets(20, 20, 10, 20));
+
+        Label headerLabel = new Label(isEdit ? "Modifica Task" : "Dettagli nuova attività");
+        headerLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        grid.add(headerLabel, 0, 0, 2, 1);
 
         TextField titleField = new TextField();
-        TextArea descField = new TextArea(); descField.setPrefRowCount(2);
+        titleField.setPromptText("Cosa devi fare?");
+        
+        TextArea descField = new TextArea(); 
+        descField.setPromptText("Note aggiuntive...");
+        descField.setPrefRowCount(3);
+        descField.setWrapText(true);
+
         TextField durationField = new TextField("60");
+        durationField.setPromptText("Minuti");
+        
         DatePicker datePicker = new DatePicker();
+        
         TextField tagsField = new TextField();
-        tagsField.setPromptText("Es: urgente, java, frontend");
+        tagsField.setPromptText("Es: urgente, backend, revisione");
 
         if (isEdit) {
             titleField.setText(taskToEdit.getTitle());
             descField.setText(taskToEdit.getDescription());
             durationField.setText(String.valueOf(taskToEdit.getEstimatedDuration().toMinutes()));
             datePicker.setValue(taskToEdit.getScheduledDate());
-            tagsField.setText(String.join(", ", taskToEdit.getTags()));
+            if (taskToEdit.getTags() != null) {
+                tagsField.setText(String.join(", ", taskToEdit.getTags()));
+            }
         }
 
-        grid.add(new Label("Titolo:"), 0, 0); grid.add(titleField, 1, 0);
-        grid.add(new Label("Descrizione:"), 0, 1); grid.add(descField, 1, 1);
-        grid.add(new Label("Stima (min):"), 0, 2); grid.add(durationField, 1, 2);
-        grid.add(new Label("Data:"), 0, 3); grid.add(datePicker, 1, 3);
-        grid.add(new Label("Tags:"), 0, 4); grid.add(tagsField, 1, 4);
+        grid.add(new Label("Titolo:"), 0, 1); grid.add(titleField, 1, 1);
+        grid.add(new Label("Descrizione:"), 0, 2); grid.add(descField, 1, 2);
         
-        dialog.getDialogPane().setContent(grid);
+        grid.add(new Label("Stima (min):"), 0, 3); grid.add(durationField, 1, 3);
+        grid.add(new Label("Data:"), 0, 4); grid.add(datePicker, 1, 4);
+        
+        grid.add(new Label("Tags:"), 0, 5); grid.add(tagsField, 1, 5);
 
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK && !titleField.getText().isEmpty()) {
+        Label helpTag = new Label("Separa i tag con una virgola");
+        helpTag.setStyle("-fx-font-size: 10px; -fx-text-fill: #7f8c8d;");
+        grid.add(helpTag, 1, 6);
+
+        dialog.getDialogPane().setContent(grid);
+        javafx.application.Platform.runLater(titleField::requestFocus);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == confirmButtonType && !titleField.getText().isEmpty()) {
                 long min = 60;
                 try { min = Long.parseLong(durationField.getText()); } catch (Exception e) {}
 
@@ -123,7 +139,7 @@ public class DialogManager {
                 String tagsInput = tagsField.getText();
                 if (!tagsInput.isEmpty()) {
                     for (String tag : tagsInput.split(",")) {
-                        task.getTags().add(tag.trim());
+                        if(!tag.trim().isEmpty()) task.getTags().add(tag.trim());
                     }
                 }
                 return task;
@@ -134,22 +150,43 @@ public class DialogManager {
         return dialog.showAndWait();
     }
 
-    /**
-     * Mostra un semplice dialog di input per confermare il completamento di un task.
-     * Chiede all'utente di specificare quanti minuti ha effettivamente impiegato.
-     *
-     * @param taskTitle Il titolo del task che si sta completando.
-     * @param estimatedMin La durata che era stata stimata (usata come valore di default).
-     * @return Un {@link Optional} con i minuti effettivi inseriti dall'utente.
-     */
     public static Optional<Long> showCompleteTaskDialog(String taskTitle, long estimatedMin) {
-        TextInputDialog dialog = new TextInputDialog(String.valueOf(estimatedMin));
+        Dialog<Long> dialog = new Dialog<Long>();
         dialog.setTitle("Completa Task");
-        dialog.setHeaderText("Conferma: " + taskTitle);
-        dialog.setContentText("Durata effettiva (min):");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().setStyle(DIALOG_STYLE);
         
-        return dialog.showAndWait().map(s -> {
-            try { return Long.parseLong(s); } catch (Exception e) { return null; }
+        ButtonType finishBtn = new ButtonType("Completa", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(finishBtn, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(15); grid.setVgap(15);
+        grid.setPadding(new Insets(20, 20, 20, 20));
+
+        Label title = new Label("Hai completato l'attività?");
+        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        
+        Label subTitle = new Label(taskTitle);
+        subTitle.setStyle("-fx-text-fill: #7f8c8d; -fx-font-style: italic;");
+
+        TextField timeField = new TextField(String.valueOf(estimatedMin));
+        timeField.setPromptText("Minuti effettivi");
+
+        grid.add(title, 0, 0);
+        grid.add(subTitle, 0, 1);
+        grid.add(new Label("Tempo impiegato (min):"), 0, 2);
+        grid.add(timeField, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+        javafx.application.Platform.runLater(timeField::requestFocus);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == finishBtn) {
+                try { return Long.parseLong(timeField.getText()); } catch (Exception e) { return null; }
+            }
+            return null;
         });
+        
+        return dialog.showAndWait();
     }
 }

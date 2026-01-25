@@ -1,73 +1,67 @@
 package it.unicam.cs.mpgc.jtime125667.util;
 
 import javafx.event.*;
+import javafx.geometry.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.text.*;
 import javafx.stage.*;
 
 import java.io.*;
 
-/**
- * Classe di utilità per la gestione della visualizzazione e del salvataggio dei report.
- * <p>
- *  Questa classe fornisce metodi statici per mostrare un'anteprima del report generato
- *  in una finestra di dialogo modale e per permettere all'utente di salvarlo su file (es. Markdown).
- * </p>
- */
 public class ReportManager {
 
-    /**
-     * Mostra una finestra di dialogo con l'anteprima del report e un pulsante per il salvataggio.
-     * <p>
-     *  Utilizza un {@link Alert} personalizzato inserendo una {@link TextArea} al suo interno
-     *  per visualizzare il contenuto del report. Gestisce inoltre l'evento di salvataggio
-     *  per aprire il FileChooser.
-     * </p>
-     *
-     * @param ownerStage      La finestra "proprietaria" del dialog (per renderlo modale rispetto ad essa).
-     * @param reportText      Il contenuto testuale del report da visualizzare.
-     * @param defaultFileName Il nome file suggerito per l'eventuale salvataggio.
-     */
+    private static final String REPORT_DIALOG_STYLE = "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px;";
+
     public static void showReportDialog(Window ownerStage, String reportText, String defaultFileName) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Report");
-        alert.setHeaderText("Anteprima Report");
-        alert.initOwner(ownerStage);
+        Dialog<ButtonType> dialog = new Dialog<ButtonType>();
+        dialog.setTitle("Report Generato");
+        dialog.initOwner(ownerStage);
+
+        dialog.getDialogPane().setStyle(REPORT_DIALOG_STYLE);
+        dialog.setHeaderText(null);
+
+        VBox root = new VBox(10);
+        root.setPadding(new Insets(20));
+        root.setPrefSize(600, 450);
+
+        Label titleLabel = new Label("Anteprima Report");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        
+        Label subTitleLabel = new Label("Controlla i dati prima di salvare il file.");
+        subTitleLabel.setStyle("-fx-text-fill: #7f8c8d;");
 
         TextArea textArea = new TextArea(reportText);
         textArea.setEditable(false);
-        textArea.setWrapText(true);
-        textArea.setMaxWidth(Double.MAX_VALUE);
-        textArea.setMaxHeight(Double.MAX_VALUE);
-        GridPane.setVgrow(textArea, Priority.ALWAYS);
-        GridPane.setHgrow(textArea, Priority.ALWAYS);
+        textArea.setWrapText(false);
 
-        GridPane expContent = new GridPane();
-        expContent.setMaxWidth(Double.MAX_VALUE);
-        expContent.add(textArea, 0, 0);
-        alert.getDialogPane().setContent(expContent);
+        textArea.setFont(Font.font("Monospaced", 13)); 
+        
+        textArea.setStyle("-fx-control-inner-background: #f8f9fa; -fx-text-box-border: transparent;");
+        VBox.setVgrow(textArea, Priority.ALWAYS);
 
-        ButtonType buttonSave = new ButtonType("Salva su File", ButtonBar.ButtonData.OK_DONE);
+        root.getChildren().addAll(titleLabel, subTitleLabel, textArea);
+        dialog.getDialogPane().setContent(root);
+
+        ButtonType buttonSave = new ButtonType("Salva su File...", ButtonBar.ButtonData.OK_DONE);
         ButtonType buttonClose = new ButtonType("Chiudi", ButtonBar.ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(buttonSave, buttonClose);
+        dialog.getDialogPane().getButtonTypes().setAll(buttonSave, buttonClose);
 
-        Button saveBtn = (Button) alert.getDialogPane().lookupButton(buttonSave);
+        Button saveBtn = (Button) dialog.getDialogPane().lookupButton(buttonSave);
+
+        saveBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;");
+        
         saveBtn.addEventFilter(ActionEvent.ACTION, event -> {
-            saveReportToFile(ownerStage, reportText, defaultFileName);
-            event.consume();
+            boolean saved = saveReportToFile(ownerStage, reportText, defaultFileName);
+            if (!saved) {
+                event.consume();
+            }
         });
 
-        alert.showAndWait();
+        dialog.showAndWait();
     }
 
-    /**
-     * Apre un FileChooser per permettere all'utente di salvare il report su disco.
-     *
-     * @param ownerStage      La finestra padre per il FileChooser.
-     * @param content         Il contenuto da scrivere nel file.
-     * @param defaultFileName Il nome di default suggerito per il file.
-     */
-    private static void saveReportToFile(Window ownerStage, String content, String defaultFileName) {
+    private static boolean saveReportToFile(Window ownerStage, String content, String defaultFileName) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Salva Report");
 
@@ -77,16 +71,21 @@ public class ReportManager {
         fileChooser.getExtensionFilters().add(
             new FileChooser.ExtensionFilter("File Markdown (*.md)", "*.md")
         );
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("File Testo (*.txt)", "*.txt")
+        );
 
         File file = fileChooser.showSaveDialog(ownerStage);
 
         if (file != null) {
             try (FileWriter writer = new FileWriter(file)) {
                 writer.write(content);
+                return true;
             } catch (IOException e) {
                 Alert error = new Alert(Alert.AlertType.ERROR, "Errore durante il salvataggio: " + e.getMessage());
                 error.show();
             }
         }
+        return false;
     }
 }
