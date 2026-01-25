@@ -13,25 +13,25 @@
             fx:controller="it.unicam.cs.mpgc.jtime125667.controller.ProjectListController">
     
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="10">
-            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
+            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
             <Label text="I Miei Progetti" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS" />
-            <CheckBox fx:id="filterActiveCheckBox" text="Nascondi completati" style="-fx-font-size: 14px;"/>
+            <CheckBox fx:id="filterActiveCheckBox" text="Nascondi completati" focusTraversable="false" style="-fx-font-size: 14px;"/>
         </HBox>
     </top>
     
     <center>
-        <ListView fx:id="projectListView" />
+        <ListView fx:id="projectListView" focusTraversable="false" style="-fx-background-insets: 0; -fx-padding: 10;" />
     </center>
     
     <bottom>
-        <HBox spacing="10" alignment="CENTER_RIGHT">
-            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-            <Button text="📅 Apri Agenda" onAction="#handleOpenAgenda" style="-fx-base: #b6e7c9;"/>
-            <Button text="➕ Nuovo Progetto" onAction="#handleNewProject"/>
-            <Button text="📂 Apri Selezionato" onAction="#handleOpenProject"/>
-            <Button text="🗑️ Elimina" onAction="#handleDeleteProject" style="-fx-text-fill: red;"/>
+        <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;">
+            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+            <Button text="Agenda" onAction="#handleOpenAgenda" focusTraversable="false" style="-fx-base: #b6e7c9; -fx-cursor: hand;"/>
+            <Button text="+ Nuovo" onAction="#handleNewProject" focusTraversable="false" style="-fx-cursor: hand;"/>
+            <Button text="Apri Selezionato" onAction="#handleOpenProject" focusTraversable="false" style="-fx-cursor: hand;"/>
+            <Button text="Elimina" onAction="#handleDeleteProject" focusTraversable="false" style="-fx-text-fill: white; -fx-background-color: #ff6b6b; -fx-cursor: hand;"/>
         </HBox>
     </bottom>
     

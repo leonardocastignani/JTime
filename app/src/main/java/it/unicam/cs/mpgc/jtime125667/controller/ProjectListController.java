@@ -4,6 +4,7 @@ import it.unicam.cs.mpgc.jtime125667.model.*;
 import it.unicam.cs.mpgc.jtime125667.persistence.*;
 import it.unicam.cs.mpgc.jtime125667.util.*;
 
+import javafx.application.*;
 import javafx.collections.*;
 import javafx.fxml.*;
 import javafx.scene.control.*;
@@ -58,19 +59,16 @@ public class ProjectListController {
      */
     @FXML
     public void initialize() {
-        this.projectListView.setCellFactory(param -> new ListCell<>() {
-            @Override protected void updateItem(ConcreteProject item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    String status = item.isCompleted() ? "[CHIUSO] " : "[ATTIVO] ";
-                    setText(status + item.getName() + " (" + item.getDescription() + ")");
-                }
-            }
-        });
+        this.projectListView.setCellFactory(param -> new ProjectCell());
+
+        this.projectListView.setFocusTraversable(false);
+
+        Label emptyLabel = new Label("Nessun progetto presente.\nClicca '+ Nuovo' per iniziare.");
+        emptyLabel.setStyle("-fx-text-fill: #95a5a6; -fx-font-size: 14px; -fx-text-alignment: center;");
+        this.projectListView.setPlaceholder(emptyLabel);
 
         if (this.filterActiveCheckBox != null) {
+            this.filterActiveCheckBox.setFocusTraversable(false);
             this.filterActiveCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> this.loadData());
         }
 
@@ -96,6 +94,10 @@ public class ProjectListController {
         }
         
         this.projectListView.setItems(this.projects);
+
+        Platform.runLater(() -> {
+            this.projectListView.getSelectionModel().clearSelection();
+        });
     }
 
     /**
