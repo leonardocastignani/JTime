@@ -11,6 +11,7 @@ import javafx.fxml.*;
 import javafx.scene.control.*;
 
 import java.time.Duration;
+import java.time.format.*;
 
 /**
  * Controller per la gestione della vista "Dettaglio Progetto".
@@ -28,7 +29,9 @@ public class ProjectDetailController {
     @FXML private CheckBox completedCheckBox;
     @FXML private TableView<Task> taskTable;
     @FXML private TableColumn<Task, String> titleColumn;
+    @FXML private TableColumn<Task, String> dateColumn;
     @FXML private TableColumn<Task, String> estimatedTimeColumn;
+    @FXML private TableColumn<Task, String> actualTimeColumn;
     @FXML private TableColumn<Task, String> statusColumn;
     @FXML private TableColumn<Task, String> tagsColumn;
 
@@ -79,9 +82,26 @@ public class ProjectDetailController {
     public void initialize() {
         this.titleColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTitle()));
         
+        this.dateColumn.setCellValueFactory(c -> {
+            if (c.getValue().getScheduledDate() != null) {
+                return new SimpleStringProperty(
+                    c.getValue().getScheduledDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                );
+            }
+            return new SimpleStringProperty("-");
+        });
+
         this.estimatedTimeColumn.setCellValueFactory(c -> new SimpleStringProperty(
             c.getValue().getEstimatedDuration().toMinutes() + " min"
         ));
+
+        this.actualTimeColumn.setCellValueFactory(c -> {
+            Duration actual = c.getValue().getActualDuration();
+            if (actual == null || actual.isZero()) {
+                return new SimpleStringProperty("-");
+            }
+            return new SimpleStringProperty(actual.toMinutes() + " min");
+        });
 
         this.statusColumn.setCellValueFactory(c -> new SimpleStringProperty(
             c.getValue().isCompleted() ? "Completato" : "In Corso"
