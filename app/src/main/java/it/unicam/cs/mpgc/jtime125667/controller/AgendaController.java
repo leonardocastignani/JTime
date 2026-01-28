@@ -25,6 +25,8 @@ import java.util.stream.*;
  */
 public class AgendaController {
 
+    private static final int MAX_DAILY_MINUTES = 480;
+
     @FXML private DatePicker agendaDatePicker;
     @FXML private TableView<AgendaItem> agendaTable;
     @FXML private TableColumn<AgendaItem, String> projectColumn;
@@ -36,14 +38,14 @@ public class AgendaController {
     /**
      * Repository per l'accesso ai dati dei progetti (e dei relativi task).
      */
-    private final Repository<ConcreteProject, String> repository;
+    private Repository<ConcreteProject, String> repository;
 
     /**
      * Costruttore predefinito.
      * Inizializza il repository utilizzando l'implementazione basata su Hibernate.
      */
     public AgendaController() {
-        this.repository = new HibernateRepository<>(ConcreteProject.class);
+        this.repository = DataService.getInstance().getProjectRepository();
     }
 
     /**
@@ -132,7 +134,7 @@ public class AgendaController {
         long min = totalMinutes % 60;
         this.totalEffortLabel.setText("Impegno Totale: " + hours + "h " + min + "m");
 
-        if (totalMinutes > 480) {
+        if (totalMinutes > MAX_DAILY_MINUTES) {
             this.totalEffortLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
         } else {
             this.totalEffortLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold;");

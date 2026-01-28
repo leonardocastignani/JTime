@@ -34,7 +34,7 @@ public class ProjectListController {
     /**
      * Repository per l'accesso ai dati persistenti dei progetti.
      */
-    private final Repository<ConcreteProject, String> repository;
+    private Repository<ConcreteProject, String> repository;
 
     /**
      * Lista osservabile che mantiene i dati visualizzati nella ListView.
@@ -47,7 +47,7 @@ public class ProjectListController {
      * Inizializza il repository utilizzando l'implementazione basata su Hibernate.
      */
     public ProjectListController() {
-        this.repository = new HibernateRepository<>(ConcreteProject.class);
+        this.repository = DataService.getInstance().getProjectRepository();
     }
 
     /**

@@ -10,7 +10,7 @@ import javafx.collections.*;
 import javafx.fxml.*;
 import javafx.scene.control.*;
 
-import java.time.Duration;
+import java.time.*;
 import java.time.format.*;
 
 /**
@@ -51,7 +51,7 @@ public class ProjectDetailController {
      * Questo è utile se il controller viene istanziato direttamente da FXML senza un setRepository esplicito.
      */
     public ProjectDetailController() {
-        this.repository = new HibernateRepository<>(ConcreteProject.class);
+        this.repository = DataService.getInstance().getProjectRepository();
     }
 
     /**
